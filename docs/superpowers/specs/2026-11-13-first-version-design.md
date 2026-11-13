@@ -1,6 +1,6 @@
 # Forever UI – erste Umsetzung
 
-Stand: 13. November 2026. Entwurf zur gemeinsamen Prüfung; noch keine Freigabe zur Implementierung.
+Stand: 13. November 2026. Umfang und direkte Umsetzung vom Nutzer bestätigt. Die Stilrichtung der Browservorschau wurde anschließend ebenfalls bestätigt.
 
 ## Ziel und getroffene Entscheidungen
 
@@ -86,4 +86,4 @@ Diese Dateiaufteilung und die Vorgaben für Warnschwelle, Sprachen, Maximallevel
 
 ## Offene Abstimmung
 
-Vor der Implementierung wird dieser Entwurf geprüft: insbesondere der reduzierte XP-Umfang von v0.1, gemeinsame Installation beider Module und das Beibehalten der Blizzard-XP-Leiste. Das erste Mockup legt anschließend die konkrete Oberfläche fest.
+Der Nutzer hat den vorgeschlagenen v0.1-Umfang bestätigt. Die gezeigte Browservorschau legt Gold-/Petrol-Stil, horizontale Hunter-Anzeige, darunterliegende Symbolknöpfe und die XP-Anzeige fest. Die Darstellung im echten Client muss noch geprüft werden.

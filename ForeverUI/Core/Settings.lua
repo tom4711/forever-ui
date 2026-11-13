@@ -1,0 +1,36 @@
+local _, ns = ...
+ns.Settings = {}
+local anchors = {TOPLEFT=true,TOP=true,TOPRIGHT=true,LEFT=true,CENTER=true,RIGHT=true,BOTTOMLEFT=true,BOTTOM=true,BOTTOMRIGHT=true}
+local function tableOrEmpty(value)
+    return type(value) == "table" and value or {}
+end
+local function finite(value)
+    return type(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
+end
+local function boolean(value, default)
+    if type(value) == "boolean" then return value end
+    return default
+end
+local function position(value, y)
+    value = tableOrEmpty(value)
+    if not anchors[value.point] or not anchors[value.relativePoint] or not finite(value.x) or not finite(value.y) then
+        return {point="CENTER",relativePoint="CENTER",x=0,y=y}
+    end
+    return {point=value.point,relativePoint=value.relativePoint,x=value.x,y=value.y}
+end
+local function module(value, y)
+    value = tableOrEmpty(value)
+    local scale = value.scale
+    if not finite(scale) or scale < 0.5 or scale > 2 then scale = 1 end
+    return {enabled=boolean(value.enabled,true),scale=scale,position=position(value.position,y)}
+end
+function ns.Settings.Load(saved)
+    saved = tableOrEmpty(saved)
+    local hunter, xp = tableOrEmpty(saved.hunter), tableOrEmpty(saved.xp)
+    local result = {schemaVersion=1,locked=boolean(saved.locked,true),hunter=module(hunter,-70),xp=module(xp,-255)}
+    local warning = hunter.ammoWarning
+    if not finite(warning) or warning < 0 or warning > 100000 then warning = 200 end
+    result.hunter.ammoWarning = math.floor(warning)
+    result.xp.showAtCap = boolean(xp.showAtCap,true)
+    return result
+end

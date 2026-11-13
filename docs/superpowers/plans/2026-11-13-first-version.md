@@ -10,7 +10,7 @@
 
 **Spec:** [Zielbild und Umfang](../specs/2026-11-13-first-version-design.md)
 
-**Status:** Planentwurf zur Prüfung. Es wird in diesem Schritt kein Produktcode geschrieben und nichts im Spiel installiert. Der Nutzer hat den eigenständigen Ansatz gewählt; der vorgeschlagene v0.1-Umfang und die konkrete Oberfläche sind noch zu bestätigen.
+**Status:** Nutzer hat Umfang und direkte Umsetzung bestätigt. Die Designvorschau ist ebenfalls bestätigt; die Implementierung läuft.
 
 ## Global Constraints
 
@@ -54,13 +54,13 @@ Vor Produktcode: Entwurf und v0.1-Umfang prüfen lassen, dann den gewählten Aus
 - `ns.Preview.SetEnabled(enabled)` arbeitet mit eigenen Beispieldaten, ohne Live-Statistiken oder geschützte Frames zu verändern; im Kampf ist ein Wechsel nicht zulässig.
 - `/fui` öffnet die gemeinsamen Einstellungen; `/fui preview` schaltet die beschriftete Vorschau um. Bei jeder Anmeldung startet der Live-Modus.
 
-- [ ] **1. Voraussetzungen prüfen:** `lua -v` und `python3 --version` ausführen. Falls erforderlich, vor dem ersten Logiktest einen geeigneten Interpreter aus vertrauenswürdiger Quelle bereitstellen und den verwendeten Aufruf in `docs/testing.md` festhalten. Das Addon darf keine nur in neueren Desktop-Lua-Versionen verfügbaren Sprachmittel benötigen.
-- [ ] **2. Verhalten der Einstellungen und Datenleser als Tests festlegen:** leere Daten liefern skalierte Standardwerte, `ammoWarning=200`, `showAtCap=true`; gültige gespeicherte Positionen bleiben erhalten; getrennte Eingabetabellen teilen keine veränderlichen Defaults. Geschützte Testwerte, falsche Typen und nicht endliche Zahlen liefern `nil`, ohne vorher verglichen/formatiert zu werden.
-- [ ] **3. Tests mit `lua tests/run.lua` ausführen:** Vor der Implementierung müssen die benannten Tests wegen der fehlenden Funktionen fehlschlagen. Der Runner lädt WoW-Dateien mit einer Test-Namensraumtabelle; keine umfangreiche Nachbildung des Clients erstellen.
-- [ ] **4. Basis implementieren:** eindeutiger Namensraum, pro Charakter gespeicherte Einstellungen, DE-Texte mit EN-Fallback und geordnete TOC-Ladereihenfolge. Keine Original-Addon-Daten migrieren oder überschreiben. Skalierung und Position gemeinsam validieren, Frames auf dem Bildschirm halten.
-- [ ] **5. Gemeinsame Gestaltung und Vorschau erstellen:** beide Modulansichten mit realistisch beschrifteten Beispieldaten und einem Einstellungsfenster zeigen. Petrol, Gold, Serifenschrift und plastische Symbolknöpfe anhand des Nutzerbilds umsetzen. Alle ausgelieferten Medien in `docs/media-sources.md` nachweisen; Client-Ressourcen nur referenzieren.
-- [ ] **6. Vorschau vorlegen:** Nutzer bewertet Stil, Größe, Informationsdichte und Lesbarkeit. Konkrete Geometrie und wesentliche Änderungen im Zielbild festhalten, bevor die endgültigen Modulansichten entstehen. Ein externes Mockup ist als Vorschau zu kennzeichnen und bestätigt keine Funktion im Spiel.
-- [ ] **7. Prüfen und committen:** `lua tests/run.lua` muss alle bisherigen Tests bestehen; TOC und Dateien statisch prüfen. Einen Commit mit dem eigenständig prüfbaren Ergebnis „gemeinsame Basis und Designvorschau“ erstellen.
+- [x] **1. Voraussetzungen prüfen:** `lua -v` und `python3 --version` ausführen. Falls erforderlich, vor dem ersten Logiktest einen geeigneten Interpreter aus vertrauenswürdiger Quelle bereitstellen und den verwendeten Aufruf in `docs/testing.md` festhalten. Das Addon darf keine nur in neueren Desktop-Lua-Versionen verfügbaren Sprachmittel benötigen.
+- [x] **2. Verhalten der Einstellungen und Datenleser als Tests festlegen:** leere Daten liefern skalierte Standardwerte, `ammoWarning=200`, `showAtCap=true`; gültige gespeicherte Positionen bleiben erhalten; getrennte Eingabetabellen teilen keine veränderlichen Defaults. Geschützte Testwerte, falsche Typen und nicht endliche Zahlen liefern `nil`, ohne vorher verglichen/formatiert zu werden.
+- [x] **3. Tests mit `lua tests/run.lua` ausführen:** Vor der Implementierung müssen die benannten Tests wegen der fehlenden Funktionen fehlschlagen. Der Runner lädt WoW-Dateien mit einer Test-Namensraumtabelle; keine umfangreiche Nachbildung des Clients erstellen.
+- [x] **4. Basis implementieren:** eindeutiger Namensraum, pro Charakter gespeicherte Einstellungen, DE-Texte mit EN-Fallback und geordnete TOC-Ladereihenfolge. Keine Original-Addon-Daten migrieren oder überschreiben. Skalierung und Position gemeinsam validieren, Frames auf dem Bildschirm halten.
+- [x] **5. Gemeinsame Gestaltung und Vorschau erstellen:** beide Modulansichten mit realistisch beschrifteten Beispieldaten und einem Einstellungsfenster zeigen. Petrol, Gold, Serifenschrift und plastische Symbolknöpfe anhand des Nutzerbilds umsetzen. Alle ausgelieferten Medien in `docs/media-sources.md` nachweisen; Client-Ressourcen nur referenzieren.
+- [x] **6. Vorschau vorlegen:** Nutzer bewertet Stil, Größe, Informationsdichte und Lesbarkeit. Konkrete Geometrie und wesentliche Änderungen im Zielbild festhalten, bevor die endgültigen Modulansichten entstehen. Ein externes Mockup ist als Vorschau zu kennzeichnen und bestätigt keine Funktion im Spiel.
+- [x] **7. Prüfen und committen:** `lua tests/run.lua` muss alle bisherigen Tests bestehen; TOC und Dateien statisch prüfen. Einen Commit mit dem eigenständig prüfbaren Ergebnis „gemeinsame Basis und Designvorschau“ erstellen.
 
 ## Task 2: XP-Modul mit belastbarer Sitzungsstatistik
 
@@ -149,4 +149,4 @@ assert(low == true and warn == true)
 - Umfang: gemeinsame Gestaltung, Hunter, XP, Einstellungen, Lizenzen und Paketabnahme sind Aufgaben zugeordnet.
 - Schnittstellen: Task 1 stellt Datenleser, Einstellungen und Widgets bereit; Tasks 2/3 erzeugen ihre eigenen normalisierten Modelle; Task 4 kapselt alle geschützten Änderungen.
 - Kritische Fälle aus Review Focus sind entweder Logiktests oder ausdrücklich Clientchecks zugeordnet.
-- Noch nicht freigegeben: vorgeschlagener Umfang von v0.1 und konkrete Vorschau. Der Plan beansprucht weder eine implementierte Funktion noch bestandene Spieltests.
+- Nutzerfreigaben für Umfang und Stil liegen vor. Offene Spieltests werden separat dokumentiert.

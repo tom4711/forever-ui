@@ -4,14 +4,14 @@ Ein eigenständiges WoW-Forever-Addon mit Hunter- und XP-Modul in einer gemeinsa
 
 ## Stand
 
-**0.1.0-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
+**0.1.1-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
 
 ## Funktionen
 
 - Hunter: Reichweitenzustände einschließlich unbekannter Werte, Munition mit einstellbarer Warnung und Begleiterstimmung.
 - Füttern: geeignete Futterauswahl aus den Taschen und ein sicherer Klickbutton. Geschützte Änderungen werden während des Kampfes vorgemerkt.
 - XP: Fortschritt, Erholungsbonus, Sitzungsgewinn/-dauer, XP pro Stunde und geschätzte Zeit bis zum nächsten Level.
-- Getrennte Sichtbarkeit, Position und Skalierung pro Modul; Einstellungen pro Charakter. Hunter wird nur auf Jägern aktiviert.
+- Getrennte Sichtbarkeit, Position und Skalierung pro Modul; zusätzliche XP-Breite von 620 bis 1600 Pixeln ohne Änderung von Höhe oder Schriftgröße; Einstellungen pro Charakter. Hunter wird nur auf Jägern aktiviert.
 - Deutsch mit englischem Fallback; keine anderen Addons als Voraussetzung.
 
 ## Installation und Bedienung

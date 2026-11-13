@@ -16,8 +16,28 @@ function ns.FoodModel.Filter(items)
     table.sort(entries,function(a,b)return a.id<b.id end)
     return entries
 end
-function ns.FoodModel.FeedPosition(position)
-    local x=position.point:find("LEFT") and 0 or position.point:find("RIGHT") and 620 or 310
-    local y=position.point:find("TOP") and 0 or position.point:find("BOTTOM") and 100 or 50
-    return {point="TOPLEFT",relativePoint=position.relativePoint,x=position.x+232-x,y=position.y-111+y}
+function ns.FoodModel.FeedPosition(geometry)
+    for _,key in ipairs({"left","top","scale","parentScale","parentLeft","parentBottom"})do
+        local value=geometry[key]
+        if type(value)~="number"or value~=value or value==math.huge or value==-math.huge then return nil end
+    end
+    if geometry.scale<=0 or geometry.parentScale<=0 then return nil end
+    local ratio=geometry.parentScale/geometry.scale
+    return {point="TOPLEFT",relativePoint="BOTTOMLEFT",x=geometry.left+232-geometry.parentLeft*ratio,
+        y=geometry.top-111-geometry.parentBottom*ratio}
+end
+
+function ns.FoodModel.State(data)
+    if data.known~=true then return "unlearned"end
+    if data.petExists==false then return "missing"end
+    if data.petExists~=true then return "unknown"end
+    if data.petDead==true then return "dead"end
+    if data.petDead~=false then return "unknown"end
+    if not data.foodID then return "unselected"end
+    if not data.name then return "loading"end
+    if data.count==nil then return "unknown"end
+    if data.count<=0 then return "empty"end
+    if data.canEat==false then return "unsuitable"end
+    if data.canEat~=true then return "unknown"end
+    return "ready"
 end

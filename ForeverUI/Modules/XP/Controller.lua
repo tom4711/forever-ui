@@ -32,6 +32,7 @@ local function schedule()
 end
 function ns.XP.Refresh()
     if not view then return end
+    view.SetWidth(ns.db.xp.width)
     ns.UI.Place(view.frame,"xp");render()
 end
 function ns.XP.GetFrame()return view and view.frame end

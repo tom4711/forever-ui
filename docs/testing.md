@@ -34,3 +34,13 @@ Anmeldung, UI-Neuladen, Zonenwechsel, Charakterklassen, vier Reichweiten und unb
 ## Paketprüfung
 
 Das Alpha-ZIP enthält 22 deklarierte Dateien unter genau einem `ForeverUI/`-Wurzelordner. TOC und Laufzeitdateien wurden auf Vollständigkeit geprüft. Referenzbilder, Browservorschau, Tests, Arbeitsdateien und Blizzard-Mediendateien werden nicht ausgeliefert. Der vollständige Spieltest ist noch offen; es wird ausdrücklich kein stabiler Release zugesagt.
+
+## Erste Prüfung im Spiel und Folgekorrekturen
+
+Vom Nutzer im Spiel bestätigt: Addon startet, beide Anzeigen und Einstellungen sind sichtbar, Füttern funktioniert, geeignetes Futter lässt sich auswählen, und der Reichweitenzustand „zu weit“ passt im geprüften Fall. Die grundsätzliche Gestaltung ist bestätigt.
+
+Das anschließende Feedback führte zu schlichten kleinen Settings-Controls und einer unabhängig von der Skalierung gespeicherten XP-Breite (620–1600 Pixel). Die unabhängige Codeprüfung führte zu ausdrücklichen Fütterzuständen und Bildschirmbegrenzung des vollständigen Hunter-Bereichs.
+
+48 Logiktests bestehen. Die neue Anordnung, die Breitenbedienung und das Verhalten direkt am Bildschirmrand müssen nach dem Aktualisieren noch im Client bestätigt werden. Kampfwechsel, Instanzreichweiten, XP-Ereignisse beim echten Levelaufstieg, neue Anmeldung versus Reload und nicht verfügbare Charakterklassen/Maximallevel sind weiterhin offene Abnahmefälle. Eine vollständige Client-Build-ID ist noch nicht protokolliert.
+
+Die Alpha 0.1.1 wurde nach der Korrektur aktualisiert. Die beiden wichtigen Reviewbefunde sind behoben und durch Regressionstests abgesichert. Der im Umfang vorgesehene Begleiter-Tooltip wurde ergänzt. Für die kleinen Controls wird die vorhandene Client-Checkbox-Textur statt eines möglicherweise fehlenden Häkchen-Schriftzeichens verwendet.

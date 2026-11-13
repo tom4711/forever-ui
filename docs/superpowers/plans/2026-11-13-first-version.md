@@ -133,16 +133,19 @@ assert(low == true and warn == true)
 
 ## Task 5: Installation, Spieltest und erstes Alpha-Paket
 
-**Files – Create:** `tools/package.py`. **Modify:** `README.md`, `THIRD_PARTY.md`, `docs/testing.md`, `docs/media-sources.md`. **Package:** `dist/ForeverUI-0.1.0-alpha.zip`; Versionsangabe in TOC auf denselben Stand setzen.
+**Files – Create:** `tools/package.py`. **Modify:** `README.md`, `THIRD_PARTY.md`, `docs/testing.md`, `docs/media-sources.md`. **Package:** `dist/ForeverUI-0.1.1-alpha.zip`; Versionsangabe in TOC auf denselben Stand setzen.
 
 **Interfaces:** `python3 tools/package.py --output dist` baut genau einen Wurzelordner `ForeverUI/`, nimmt nur deklarierte Addon-Dateien sowie notwendige MIT-/Medienhinweise auf und lässt Repository, Tests, Referenzbilder und lokale Arbeit aus.
 
-- [ ] **1. Lokale Checks ausführen:** `lua tests/run.lua` muss fehlerfrei enden; Lua-Syntax aller ausgelieferten Dateien und TOC-Dateiliste prüfen; `git diff --check` ausführen. Keine eigenen Tests erstellen, die nur die triviale ZIP-Implementierung nachbauen.
-- [ ] **2. Spieltest vorbereiten:** geprüften Installationspfad und Client-Interface dokumentieren; ausschließlich den neuen `ForeverUI`-Ordner installieren. Bestehende Addons und ihre Daten bleiben erhalten. Für den isolierten Test kann der Nutzer deren Anzeige im Spiel vorübergehend deaktivieren.
-- [ ] **3. Matrix im echten Client prüfen:** Jäger/nicht Jäger; Anmeldung/Reload/Zonenwechsel; lebendes/totes/kein Ziel; vier Reichweiten; fehlende/knappe/ausreichende Munition; Begleiterzustände; Füttern/Futterwechsel; Kampf während Verschieben/Einstellungen; XP-Gewinn/Levelaufstieg/Maximallevel soweit mit verfügbaren Charakteren prüfbar. Zusätzlich wenigstens eine Instanzsituation für Hunter prüfen. Nicht verfügbare Fälle als offen kennzeichnen.
-- [ ] **4. Optik gemeinsam abnehmen:** tatsächliche Spielansichten bei verschiedenen UI-Skalierungen und langen deutschen Texten beurteilen. Gold/Petrol-Stil, klare Hierarchie, saubere Rahmen und gute Lesbarkeit müssen im Spiel erkennbar sein; keine Überlappungen oder abgeschnittenen Bedienelemente.
-- [ ] **5. Paket bauen und inspizieren:** `python3 tools/package.py --output dist`, anschließend `python3 -m zipfile -l dist/ForeverUI-0.1.0-alpha.zip`. Prüfen: `ForeverUI/ForeverUI.toc`, jede deklarierte Datei, verwendete eigene Medien und Lizenzhinweise sind vorhanden; keine Original-Addon-Dateien oder privaten Daten enthalten.
-- [ ] **6. Ergebnis dokumentieren und committen:** Clientversion, tatsächlich geprüfte Fälle und verbleibende Grenzen in `docs/testing.md` festhalten. Ohne bestandenen Spieltest den Stand ausdrücklich Alpha nennen. README mit Installation, `/fui`, Funktionsumfang und offenen Punkten aktualisieren; Prüfung und Paketergebnis committen. Kein automatisches CurseForge-Release einrichten.
+- [x] **1. Lokale Checks ausführen:** `lua tests/run.lua` muss fehlerfrei enden; Lua-Syntax aller ausgelieferten Dateien und TOC-Dateiliste prüfen; `git diff --check` ausführen. Keine eigenen Tests erstellen, die nur die triviale ZIP-Implementierung nachbauen.
+- [x] **2. Spieltest vorbereiten:** geprüften Installationspfad und Client-Interface dokumentieren; ausschließlich den neuen `ForeverUI`-Ordner installieren. Bestehende Addons und ihre Daten bleiben erhalten. Für den isolierten Test kann der Nutzer deren Anzeige im Spiel vorübergehend deaktivieren.
+- [x] **3. Matrix im echten Client prüfen:** Jäger/nicht Jäger; Anmeldung/Reload/Zonenwechsel; lebendes/totes/kein Ziel; vier Reichweiten; fehlende/knappe/ausreichende Munition; Begleiterzustände; Füttern/Futterwechsel; Kampf während Verschieben/Einstellungen; XP-Gewinn/Levelaufstieg/Maximallevel soweit mit verfügbaren Charakteren prüfbar. Zusätzlich wenigstens eine Instanzsituation für Hunter prüfen. Nicht verfügbare Fälle als offen kennzeichnen.
+- [x] **4. Optik gemeinsam abnehmen:** tatsächliche Spielansichten bei verschiedenen UI-Skalierungen und langen deutschen Texten beurteilen. Gold/Petrol-Stil, klare Hierarchie, saubere Rahmen und gute Lesbarkeit müssen im Spiel erkennbar sein; keine Überlappungen oder abgeschnittenen Bedienelemente.
+- [x] **5. Paket bauen und inspizieren:** `python3 tools/package.py --output dist`, anschließend `python3 -m zipfile -l dist/ForeverUI-0.1.1-alpha.zip`. Prüfen: `ForeverUI/ForeverUI.toc`, jede deklarierte Datei, verwendete eigene Medien und Lizenzhinweise sind vorhanden; keine Original-Addon-Dateien oder privaten Daten enthalten.
+- [x] **6. Ergebnis dokumentieren und committen:** Clientversion, tatsächlich geprüfte Fälle und verbleibende Grenzen in `docs/testing.md` festhalten. Ohne bestandenen Spieltest den Stand ausdrücklich Alpha nennen. README mit Installation, `/fui`, Funktionsumfang und offenen Punkten aktualisieren; Prüfung und Paketergebnis committen. Kein automatisches CurseForge-Release einrichten.
+
+
+Abnahmestand: Die verfügbare erste Spielprüfung ist dokumentiert; nicht geprüfte Matrixfälle bleiben in `docs/testing.md` ausdrücklich offen. Die Markierung dieses Arbeitsschritts bedeutet keinen vollständigen oder stabilen Release.
 
 ## Selbstprüfung dieses Plans
 

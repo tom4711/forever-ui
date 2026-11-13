@@ -17,12 +17,21 @@ local function count(id)
     if not id then return 0 end
     return number(C_Item and C_Item.GetItemCount,id,false,false,false,false)
 end
+local function currentState()
+    local id=ns.db.hunter.food
+    local name=itemName(id)
+    local amount=count(id)
+    local state=ns.FoodModel.State({known=boolean(IsPlayerSpell,6991),petExists=boolean(UnitExists,"pet"),
+        petDead=boolean(UnitIsDeadOrGhost,"pet"),foodID=id,name=name,count=amount,
+        canEat=id and boolean(C_PetInfo and C_PetInfo.CanPetEatItem,id)})
+    return state,name,amount
+end
 local function updateCount()
     if not button then return end
     local id=ns.db.hunter.food
-    local amount=count(id)
+    local state,_,amount=currentState()
     button.icon:SetTexture(id and R.Call(C_Item and C_Item.GetItemIconByID,id) or T.icons.food)
-    button.icon:SetDesaturated(amount==nil or amount==0)
+    button.icon:SetDesaturated(state~="ready")
     button.count:SetText(id and ns.Format.Number(amount) or "")
 end
 function ns.HunterFeed.Foods()
@@ -53,6 +62,8 @@ function ns.HunterFeed.ShowMenu(anchor)
     if not MenuUtil or not MenuUtil.CreateContextMenu then ns.Print(ns.L.MENU_UNAVAILABLE);return end
     MenuUtil.CreateContextMenu(anchor or button,function(_,root)
         root:CreateTitle(ns.L.FOOD)
+        if boolean(UnitExists,"pet")==false then root:CreateButton(ns.L.FEED_STATE_missing):SetEnabled(false);return end
+        if boolean(UnitIsDeadOrGhost,"pet")==true then root:CreateButton(ns.L.FEED_STATE_dead):SetEnabled(false);return end
         local foods=ns.HunterFeed.Foods()
         for _,entry in ipairs(foods)do
             local label=entry.name or ns.L.ITEM_LOADING
@@ -77,15 +88,18 @@ local function create()
     button:SetClampedToScreen(true)
     button:SetScript("OnEnter",function(self)
         GameTooltip:SetOwner(self,"ANCHOR_TOP");GameTooltip:SetText(ns.L.FEED,1,0.82,0.42)
-        local name=ns.db.hunter.food and R.Call(C_Item and C_Item.GetItemNameByID,ns.db.hunter.food)
-        GameTooltip:AddLine(type(name)=="string" and name or ns.L.SELECT_FOOD,0.79,0.85,0.84,true)
-        GameTooltip:AddLine(ns.L.FEED_HINT,0.79,0.85,0.84,true);GameTooltip:Show()
+        local state,name=currentState()
+        if name then GameTooltip:AddLine(name,0.79,0.85,0.84,true)end
+        GameTooltip:AddLine(state=="ready" and ns.L.FEED_HINT or ns.L["FEED_STATE_"..state],0.79,0.85,0.84,true)
+        GameTooltip:Show()
     end)
     button:SetScript("OnLeave",function()GameTooltip:Hide()end)
     button:SetScript("PostClick",function(_,mouse)
         if mouse=="RightButton"then ns.HunterFeed.ShowMenu(button)
-        elseif not ns.db.hunter.food then ns.Print(ns.L.SELECT_FOOD)
-        elseif count(ns.db.hunter.food)==0 then ns.Print(ns.L.FOOD_EMPTY)end
+        else
+            local state=currentState()
+            if state~="ready"then ns.Print(ns.L["FEED_STATE_"..state])end
+        end
     end)
     button:Hide()
 end
@@ -94,13 +108,16 @@ function ns.HunterFeed.Refresh(config)
         if not button then create()end
         config=ns.db.hunter
         local id=config.food
-        local name=itemName(id)
-        local canEat=id and boolean(C_PetInfo and C_PetInfo.CanPetEatItem,id)
-        local ready=name and canEat==true and (count(id)or 0)>0
+        local state,name=currentState()
+        local ready=state=="ready"
         button:SetAttribute("type1",ready and "spell"or nil)
         button:SetAttribute("target-item",ready and name or nil)
         button:ClearAllPoints();button:SetScale(config.scale)
-        local p=ns.FoodModel.FeedPosition(config.position)
+        local anchor=ns.Hunter.GetFrame()
+        local p=anchor and ns.FoodModel.FeedPosition({left=R.Number(anchor:GetLeft()),top=R.Number(anchor:GetTop()),
+            scale=R.Number(anchor:GetEffectiveScale()),parentScale=R.Number(UIParent:GetEffectiveScale()),
+            parentLeft=R.Number(UIParent:GetLeft()),parentBottom=R.Number(UIParent:GetBottom())})
+        if not p then button:Hide();return end
         button:SetPoint(p.point,UIParent,p.relativePoint,p.x,p.y)
         button:SetShown(config.enabled and not dragging and not ns.Preview.IsEnabled() and boolean(IsPlayerSpell,6991)==true)
         updateCount()
@@ -111,7 +128,11 @@ function ns.HunterFeed.SetDragging(value)
 end
 function ns.HunterFeed.Init()
     events=CreateFrame("Frame")
-    for _,event in ipairs({"BAG_UPDATE_DELAYED","GET_ITEM_INFO_RECEIVED","SPELLS_CHANGED","UNIT_PET","PLAYER_ENTERING_WORLD"})do events:RegisterEvent(event)end
-    events:SetScript("OnEvent",function()updateCount();ns.HunterFeed.Refresh(ns.db.hunter)end)
+    for _,event in ipairs({"BAG_UPDATE_DELAYED","GET_ITEM_INFO_RECEIVED","SPELLS_CHANGED","UNIT_PET","UNIT_FLAGS","PLAYER_ENTERING_WORLD"})do events:RegisterEvent(event)end
+    events:SetScript("OnEvent",function(_,event,unit)
+        if event=="UNIT_FLAGS" and unit~="pet"then return end
+        if event=="GET_ITEM_INFO_RECEIVED" and unit~=ns.db.hunter.food then return end
+        updateCount();ns.HunterFeed.Refresh(ns.db.hunter)
+    end)
     ns.HunterFeed.Refresh(ns.db.hunter)
 end

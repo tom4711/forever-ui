@@ -59,3 +59,15 @@ test("XP reload data survives normalization without sharing character state",fun
     c.xpSession.last.current=99
     assert(saved.xpSession.last.current==30)
 end)
+
+
+test("XP width persists independently of scale and defaults for existing characters",function()
+    local c=load({xp={width=1100,scale=0.55}})
+    assert(c.xp.width==1100 and c.xp.scale==0.55)
+    assert(load({xp={scale=0.55}}).xp.width==620)
+end)
+
+test("corrupted XP widths cannot create unusable panels",function()
+    assert(load({xp={width=0}}).xp.width==620)
+    assert(load({xp={width=math.huge}}).xp.width==620)
+end)

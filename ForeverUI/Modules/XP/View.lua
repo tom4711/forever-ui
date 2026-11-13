@@ -7,6 +7,7 @@ function ns.XPView.Create(name,preview)
     local icon=UI.CreateIconButton(frame);icon:SetPoint("TOPLEFT",17,-17);icon:SetSize(48,48);icon.icon:SetTexture(T.icons.xp)
     local title=UI.Text(frame,21,T.goldLight);title:SetPoint("TOPLEFT",82,-17)
     local percent=UI.Text(frame,16,T.teal);percent:SetPoint("TOPRIGHT",-20,-21)
+    local barWidth=518
     local track=UI.Rect(frame,T.inset);track:SetPoint("TOPLEFT",82,-49);track:SetSize(518,16)
     local rested=UI.Rect(frame,T.rested);rested:SetPoint("TOPLEFT",track,"TOPLEFT",0,0);rested:SetHeight(16)
     local fill=UI.Rect(frame,T.xp);fill:SetPoint("TOPLEFT",track,"TOPLEFT",0,0);fill:SetHeight(16)
@@ -14,7 +15,7 @@ function ns.XPView.Create(name,preview)
     local numbers=UI.Text(frame,11,T.text);numbers:SetPoint("TOPLEFT",82,-70)
     local rest=UI.Text(frame,11,T.muted);rest:SetPoint("TOPRIGHT",-20,-70)
     local rate=UI.Text(frame,11,T.muted);rate:SetPoint("TOPLEFT",20,-99)
-    local eta=UI.Text(frame,11,T.muted);eta:SetPoint("TOPLEFT",220,-99)
+    local eta=UI.Text(frame,11,T.muted);eta:SetPoint("TOP",frame,"TOP",0,-99)
     local elapsed=UI.Text(frame,11,T.muted);elapsed:SetPoint("TOPRIGHT",-20,-99)
     local earned=UI.Text(frame,11,T.muted);earned:SetPoint("TOPLEFT",20,-122)
     local reset=UI.Text(frame,10,T.gold);reset:SetPoint("TOPRIGHT",-20,-122)
@@ -30,6 +31,10 @@ function ns.XPView.Create(name,preview)
     end)
     frame:SetScript("OnLeave",function()GameTooltip:Hide()end)
     local view={frame=frame}
+    function view.SetWidth(width)
+        frame:SetWidth(width);barWidth=width-102;track:SetWidth(barWidth)
+        if summary then view.Render(summary)end
+    end
     function view.Render(data)
         summary=data
         title:SetText(data.atCap and L.MAX_LEVEL or L.LEVEL_PREFIX.." "..ns.Format.Number(data.level))
@@ -37,9 +42,9 @@ function ns.XPView.Create(name,preview)
         local pText=p and string.format("%.1f",p)or "–"
         if GetLocale()=="deDE"then pText=pText:gsub("%.",",")end
         percent:SetText(pText.." %")
-        fill:SetShown(p~=nil and p>0);fill:SetWidth(math.max(1,518*(p or 0)/100))
+        fill:SetShown(p~=nil and p>0);fill:SetWidth(math.max(1,barWidth*(p or 0)/100))
         local resting=data.restedEnd and data.maximum and data.maximum>0 and data.restedEnd/data.maximum or 0
-        rested:SetShown(resting>0);rested:SetWidth(math.max(1,518*resting))
+        rested:SetShown(resting>0);rested:SetWidth(math.max(1,barWidth*resting))
         numbers:SetText(data.atCap and L.MAX_LEVEL_HINT or ns.Format.Number(data.current).." / "..ns.Format.Number(data.maximum).." XP")
         rest:SetText(data.atCap and ""or L.RESTED.." +"..ns.Format.Number(data.rested))
         rate:SetText(L.XP_HOUR..": |cffcbdad6"..ns.Format.Number(data.perHour).."|r")

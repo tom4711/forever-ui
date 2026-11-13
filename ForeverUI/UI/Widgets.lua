@@ -39,6 +39,12 @@ function UI.Decorate(frame)
         local jewel=UI.Rect(frame,T.gold,"OVERLAY");jewel:SetSize(5,5);jewel:SetPoint("CENTER",corner,"CENTER");jewel:SetRotation(math.pi/4)
     end
 end
+function UI.DecorateControl(frame)
+    local bg=UI.Rect(frame,T.inset,"BACKGROUND");bg:SetAllPoints()
+    stroke(frame,0,T.goldDark,2)
+    stroke(frame,1,T.gold,1)
+    stroke(frame,3,{0.05,0.15,0.17,1},1)
+end
 function UI.CreatePanel(parent,id)
     local frame=CreateFrame("Frame",id,parent)
     frame:SetClampedToScreen(true)
@@ -69,7 +75,7 @@ end
 function UI.Button(parent,text,width)
     local button=CreateFrame("Button",nil,parent)
     button:SetSize(width or 160,29)
-    UI.Decorate(button)
+    UI.DecorateControl(button)
     button.label=UI.Text(button,12,T.goldLight);button.label:SetPoint("CENTER");button.label:SetText(text)
     button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","ADD")
     return button

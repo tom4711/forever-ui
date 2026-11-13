@@ -33,7 +33,7 @@ Eigene Implementierung ist der Standard. Geeignete Teile von ForeverHunter dürf
 - Gemeinsame Komponenten für Rahmen, Symbolknöpfe, Tooltips und Einstellungen. Kein dauerhaftes Leuchten und keine Animation als Voraussetzung für Erkennbarkeit.
 - Ein eigener Addon-Ordner `ForeverUI`; Lua-Namensraum über die Addon-Tabelle; eigener Chatbefehl `/fui` und eigene Charaktereinstellungen `ForeverUICharDB`.
 - Beide Module unabhängig ein-/ausschaltbar; Hunter nur für Jäger aktiv, XP grundsätzlich für jede Klasse.
-- Position und Skalierung getrennt pro Modul speichern; verschieben per Alt-Ziehen außerhalb des Kampfes; eine Sperre und ein Zurücksetzen anbieten.
+- Position und Skalierung getrennt pro Modul speichern; XP-Breite nach Nutzerfeedback zusätzlich unabhängig zwischen 620 und 1600 Pixeln einstellen; verschieben per Alt-Ziehen außerhalb des Kampfes; eine Sperre und ein Zurücksetzen anbieten.
 - Deutsch als erste vollständig ausgearbeitete Sprache, Englisch als Fallback. Interne Zustandsnamen bleiben sprachunabhängig.
 - Eine Vorschau mit Beispieldaten wird zuerst erstellt und dem Nutzer gezeigt. Die genaue Anordnung, Größe und Ornamentik werden daran festgelegt; der Screenshot legt den Stil, nicht die Abmessungen fest.
 

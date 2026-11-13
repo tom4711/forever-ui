@@ -32,6 +32,8 @@ function ns.Settings.Load(saved)
     if not finite(warning) or warning < 0 or warning > 100000 then warning = 200 end
     if finite(hunter.food) and hunter.food>0 then result.hunter.food=math.floor(hunter.food)end
     result.hunter.ammoWarning = math.floor(warning)
+    local width=xp.width
+    result.xp.width=finite(width) and width>=620 and width<=1600 and math.floor(width)or 620
     result.xp.showAtCap = boolean(xp.showAtCap,true)
     local session=saved.xpSession
     if type(session)=="table"then

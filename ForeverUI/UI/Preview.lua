@@ -12,6 +12,7 @@ end
 function ns.Preview.IsEnabled()return enabled end
 function ns.Preview.Refresh()
     if not hunter then return end
+    xp.SetWidth(ns.db.xp.width)
     ns.UI.Place(hunter.frame,"hunter");ns.UI.Place(xp.frame,"xp")
     hunter.frame:SetShown(enabled and ns.db.hunter.enabled)
     xp.frame:SetShown(enabled and ns.db.xp.enabled)

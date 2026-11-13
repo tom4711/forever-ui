@@ -72,7 +72,7 @@ Vor Produktcode: Entwurf und v0.1-Umfang prüfen lassen, dann den gewählten Aus
 - `summary = {level, current, maximum, percent, remaining, restedEnd, earned, elapsed, perHour, eta, atCap, reliable}`; fehlende Auswertbarkeit ergibt `nil`-Werte und `reliable=false`, niemals erfundene Zahlen. `restedEnd` ist auf das XP-Maximum begrenzt.
 - Controller bindet geprüfte Client-APIs und relevante XP-, Level-, Erholungs- und Anmeldeereignisse an. View verwendet Task-1-Komponenten; `nil` erscheint als „–“.
 
-- [ ] **1. Failing Tests schreiben:** normale Gewinne, keine Gewinne, Levelübergang, doppelte Ereignisse, mehrstufiger Sprung, Maximallevel, unlesbare Daten und Sitzungsneustart prüfen. Konkreter Levelübergang: vorher Level 10 / 90 von 100 XP, danach Level 11 / 10 von 150 XP → 20 XP Gewinn; eine identische Folgemeldung zählt 0 hinzu.
+- [x] **1. Failing Tests schreiben:** normale Gewinne, keine Gewinne, Levelübergang, doppelte Ereignisse, mehrstufiger Sprung, Maximallevel, unlesbare Daten und Sitzungsneustart prüfen. Konkreter Levelübergang: vorher Level 10 / 90 von 100 XP, danach Level 11 / 10 von 150 XP → 20 XP Gewinn; eine identische Folgemeldung zählt 0 hinzu.
 
 ```lua
 local s = ns.XPModel.New({level=10,current=90,maximum=100,rested=0,at=0,atCap=false}, 0)
@@ -84,11 +84,11 @@ assert(r.remaining == 140)
 assert(r.eta == 420)
 ```
 
-- [ ] **2. `lua tests/run.lua` ausführen:** neue XP-Tests müssen zunächst fehlschlagen, vorhandene Tests weiter bestehen.
-- [ ] **3. Modell implementieren:** Rate aus verlässlich erfassten Gewinnen und Sitzungszeit berechnen; ETA nur bei positiver Rate und sinnvoller Restmenge. Bei Datenlücken/mehrem Levelsprung die Messung an einer neuen gültigen Basis beginnen und den Bruch kennzeichnen. Keine stillschweigende Schätzung übersprungener Levelkosten.
-- [ ] **4. Controller und Persistenz anschließen:** API-Signaturen im aktuellen Forever-Client prüfen; Anmelde-/Reload-Unterscheidung verwenden. Über `/reload` erhaltene Sitzung mit derselben Zeitbasis fortsetzen; echte Neuanmeldung setzt sie zurück. Level-/XP-Ereignisreihenfolge im Client prüfen und zusammengehörige Aktualisierungen konsistent einlesen.
-- [ ] **5. Ansicht integrieren:** Level, XP-Balken, begrenzte Erholungsmarkierung, Prozent, fehlende XP, Sitzungsgewinn/-dauer, XP/h und ETA im bestätigten Stil darstellen. Maximallevel und fehlende Daten ausdrücklich zeigen; Blizzard-Leiste bleibt unverändert.
-- [ ] **6. Prüfen und committen:** `lua tests/run.lua`; in `docs/testing.md` konkrete Spielchecks für XP-Gewinn, `/reload`, Neuanmeldung und Levelaufstieg ergänzen. Ergebnis: eigenständig nutzbares XP-Modul, Clientprüfung ggf. noch offen.
+- [x] **2. `lua tests/run.lua` ausführen:** neue XP-Tests müssen zunächst fehlschlagen, vorhandene Tests weiter bestehen.
+- [x] **3. Modell implementieren:** Rate aus verlässlich erfassten Gewinnen und Sitzungszeit berechnen; ETA nur bei positiver Rate und sinnvoller Restmenge. Bei Datenlücken/mehrem Levelsprung die Messung an einer neuen gültigen Basis beginnen und den Bruch kennzeichnen. Keine stillschweigende Schätzung übersprungener Levelkosten.
+- [x] **4. Controller und Persistenz anschließen:** API-Signaturen im aktuellen Forever-Client prüfen; Anmelde-/Reload-Unterscheidung verwenden. Über `/reload` erhaltene Sitzung mit derselben Zeitbasis fortsetzen; echte Neuanmeldung setzt sie zurück. Level-/XP-Ereignisreihenfolge im Client prüfen und zusammengehörige Aktualisierungen konsistent einlesen.
+- [x] **5. Ansicht integrieren:** Level, XP-Balken, begrenzte Erholungsmarkierung, Prozent, fehlende XP, Sitzungsgewinn/-dauer, XP/h und ETA im bestätigten Stil darstellen. Maximallevel und fehlende Daten ausdrücklich zeigen; Blizzard-Leiste bleibt unverändert.
+- [x] **6. Prüfen und committen:** `lua tests/run.lua`; in `docs/testing.md` konkrete Spielchecks für XP-Gewinn, `/reload`, Neuanmeldung und Levelaufstieg ergänzen. Ergebnis: eigenständig nutzbares XP-Modul, Clientprüfung ggf. noch offen.
 
 ## Task 3: Hunter-Anzeigen ohne geschützte Aktionen
 

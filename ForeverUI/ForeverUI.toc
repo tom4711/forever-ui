@@ -17,6 +17,9 @@ Modules/Hunter/FoodModel.lua
 Modules/Hunter/Feed.lua
 Modules/Hunter/View.lua
 Modules/Hunter/Controller.lua
+Modules/XP/Model.lua
+Modules/XP/View.lua
+Modules/XP/Controller.lua
 UI/Preview.lua
 UI/Settings.lua
 Core/Bootstrap.lua

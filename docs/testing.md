@@ -26,3 +26,7 @@ Anmeldung, UI-Neuladen, Zonenwechsel, Charakterklassen, vier Reichweiten und unb
 ## Fütterfunktion
 
 28 Offline-Tests bestehen. Hinzugekommen sind Kampfsperre/erneuter Kampfbeginn, Ersetzen vorgemerkter Einstellungen, Futterstapel, nicht geladene Gegenstandsnamen und gesicherte Futterwahl. Der geschützte Button wird ohne Verankerung an den verschiebbaren Normalframe positioniert. Die WoW-Sicherheitsmechanik und echtes Füttern sind damit nicht offline bestätigt; diese Spieltests bleiben offen.
+
+## XP-Modul
+
+40 Offline-Tests bestehen, darunter ein Levelübergang mit exakt 20 XP Gewinn, unveränderte Folgemeldungen, Erholungsdeckelung, mehrstufige Sprünge, Maximallevel sowie getrennte Behandlung von Reload und neuer Anmeldung. Ein vorübergehender Verlust lesbarer Daten führt zu einer gekennzeichneten neuen Messung. Das Zusammenspiel echter XP-/Level-Ereignisse ist noch im Client zu prüfen.

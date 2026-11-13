@@ -50,3 +50,12 @@ test("selected food survives reload without accepting invalid item identifiers",
     assert(load({hunter={food=1234}}).hunter.food==1234)
     assert(load({hunter={food=-1}}).hunter.food==nil)
 end)
+
+
+test("XP reload data survives normalization without sharing character state",function()
+    local saved={xpSession={version=1,startedAt=10,earned=20,reliable=true,last={level=10,current=30,maximum=100,rested=0,at=60,atCap=false}}}
+    local c=load(saved)
+    assert(c.xpSession and c.xpSession.earned==20)
+    c.xpSession.last.current=99
+    assert(saved.xpSession.last.current==30)
+end)

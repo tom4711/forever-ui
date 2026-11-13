@@ -33,5 +33,18 @@ function ns.Settings.Load(saved)
     if finite(hunter.food) and hunter.food>0 then result.hunter.food=math.floor(hunter.food)end
     result.hunter.ammoWarning = math.floor(warning)
     result.xp.showAtCap = boolean(xp.showAtCap,true)
+    local session=saved.xpSession
+    if type(session)=="table"then
+        local copy={}
+        for _,key in ipairs({"version","startedAt","earned"})do if finite(session[key])then copy[key]=session[key]end end
+        copy.reliable=session.reliable==true;copy.measurementReset=session.measurementReset==true
+        if type(session.last)=="table"then
+            copy.last={atCap=session.last.atCap==true}
+            for _,key in ipairs({"level","current","maximum","rested","at"})do
+                if finite(session.last[key])then copy.last[key]=session.last[key]end
+            end
+        end
+        result.xpSession=copy
+    end
     return result
 end

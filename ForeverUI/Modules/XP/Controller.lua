@@ -76,6 +76,8 @@ end
 function ns.XP.GetFrame()return view and view.frame end
 function ns.XP.Init()
     view=ns.XPView.Create("ForeverUI_XP")
+    state=M.New(snapshot(),now());save()
+    ns.XP.Refresh()
     events=CreateFrame("Frame")
     for _,event in ipairs({"PLAYER_ENTERING_WORLD","PLAYER_XP_UPDATE","PLAYER_LEVEL_UP","UPDATE_EXHAUSTION","PLAYER_LOGOUT","QUEST_LOG_UPDATE","QUEST_TURNED_IN","QUEST_REMOVED","QUEST_ACCEPTED","QUEST_DATA_LOAD_RESULT"})do events:RegisterEvent(event)end
     events:SetScript("OnEvent",function(_,event,initial,reloaded)

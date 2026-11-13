@@ -58,8 +58,10 @@ Das Layout nutzt den Balken über fast die volle Breite, die XP-Zahlen im Kopfbe
 59 Logiktests bestehen, einschließlich disjunkter Segmente, Begrenzung, Quest-ID statt Logindex, doppelter/fehlender Daten und bereits abgegebener Quests. Es wird keine zusätzliche Laufzeitdatei benötigt; die Erweiterung liegt in den vorhandenen XP-Modell-/Controller-Dateien und kann per `/reload` geladen werden.
 
 
-## XP-Einheiten und Hunter-Klickaktionen (Alpha 0.1.5)
+## XP-Einheiten und Hunter-Klickaktionen (Alpha 0.1.6)
 
-69 Offline-Tests bestehen. Hinzugekommen sind unabhängige SavedVariables-Auswahl für Quest- und Ruhebonus in XP/Prozent sowie Hunter-Modelltests für höchste erlernte Aspektränge und Pet-Zustände. Sichere Klickbuttons für Aspekte, Mend Pet und Revive Pet werden außerhalb des Kampfes konfiguriert. Der neue Aspektbereich hat eine eigene Zeile oberhalb der Futter- und Werkzeugbuttons. Das tatsächliche Zauberwirken, Zielverhalten und Layout im Forever-Client müssen im Spiel bestätigt werden.
+70 Offline-Tests bestehen. Hinzugekommen sind unabhängige SavedVariables-Auswahl für Quest- und Ruhebonus in XP/Prozent sowie Hunter-Modelltests für höchste erlernte Aspektränge und Pet-Zustände. Sichere Klickbuttons für Aspekte, Mend Pet und Revive Pet werden außerhalb des Kampfes konfiguriert. Der neue Aspektbereich hat eine eigene Zeile oberhalb der Futter- und Werkzeugbuttons. Das tatsächliche Zauberwirken, Zielverhalten und Layout im Forever-Client müssen im Spiel bestätigt werden.
 
 Die Abschlussprüfung hat die Pet-Button-Slots über wiederholte Aktualisierungen, die Hunter-Skalierung und den Abstand zum Futterbutton durch zusätzliche Offline-Tests abgesichert.
+
+Der XP-Controller initialisiert die normale XP-Leiste sofort aus einem lesbaren Snapshot; ein Test deckt den Fall ab, dass das Welt-Ereignis später eintrifft.

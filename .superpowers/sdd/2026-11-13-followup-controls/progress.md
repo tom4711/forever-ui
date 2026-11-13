@@ -14,3 +14,6 @@ Final review: Important findings fixed in one pass — stable action slots, scal
 Final: minor (deferred): Preview XP labels do not rerender immediately when switching units; main in-game XP labels do. Cost if wrong: preview may show the previous unit until rebuilt.
 Final: minor (deferred): A known pet spell without a returned localized name may not produce its macro button until a later spell refresh. Cost if wrong: pet helper button can be absent temporarily.
 Final: minor (deferred): Pet-state availability is shown in hover text only rather than changing the button face. Cost if wrong: availability is less visible at a glance.
+
+User finding: normal XP panel hidden at level 21 after preview closes. Ruling: XP.Init previously waited for PLAYER_ENTERING_WORLD to create state and render. Initialize synchronously from snapshot; a mocked Controller test reproduces the frame hidden before and shown after. Cost if wrong: negligible duplicate observation when the event subsequently arrives; model already deduplicates unchanged samples.
+Regression test: XP panel initializes from a live snapshot even before the world event — RED before fix, GREEN after. Updated suite: 70/70.

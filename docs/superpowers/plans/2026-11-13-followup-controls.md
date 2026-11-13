@@ -59,3 +59,7 @@
 ## Manual Client Checks
 
 After installation, use `/reload`; confirm XP/percent settings persist independently; check Mac Option hint; inspect learned aspect icons and clicks; test Mend Pet with a living pet, Revive Pet with a dead pet, no pet, and during combat. Ensure no Lua errors or protected-action taint.
+
+## Zusatzkorrektur nach Nutzerprüfung
+
+Falls `PLAYER_ENTERING_WORLD` beim ersten Aufruf verspätet eintrifft, bleibt das normale XP-Frame nicht mehr bis dahin leer: `XP.Init` startet es sofort mit einem aktuellen Snapshot. Ein Controller-Test deckt den verzögerten Event-Fall ab.

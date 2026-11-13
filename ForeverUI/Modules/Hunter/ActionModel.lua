@@ -26,6 +26,18 @@ function M.HighestKnown(spells,known)
     for _,id in ipairs(spells)do if known[id]==true then result=id end end
     return result
 end
+function M.Slots(aspectCount,petActions)
+    local slots={}
+    for index=1,aspectCount do slots["aspect"..index]=index-1 end
+    local nextIndex=aspectCount
+    for _,key in ipairs(petActions)do slots[key]=nextIndex;nextIndex=nextIndex+1 end
+    return slots
+end
+function M.Position(geometry,index)
+    local feed=ns.FoodModel.FeedPosition(geometry)
+    if not feed then return nil end
+    return {x=feed.x-232+index*36,y=feed.y+55,scale=geometry.scale/geometry.parentScale}
+end
 function M.PetMacro(action,localizedName)
     if type(localizedName)~="string" or localizedName=="" then return nil end
     if action=="mend" then return "/cast [@pet,exists,nodead] "..localizedName end

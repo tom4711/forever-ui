@@ -51,8 +51,8 @@
 - [x] Add model tests for deduplicated supported learned spells and omission of unknown spell IDs.
 - [x] Add tests for pet action availability states: Mend requires a living pet; Revive requires a dead pet; neither is available when no pet exists.
 - [x] Register relevant pet and spell learning events; refresh learned spells outside combat and retain the last configured set during combat.
-- [x] Create fixed secure spell buttons with localized tooltips and original game spell icons; keep their visibility stable through combat, reflecting availability with non-protected visual cues.
-- [x] Integrate the buttons into the Hunter controls without moving the independent feeder or settings control; keep Preview buttons nonfunctional.
+- [x] Create fixed secure spell buttons with localized tooltips and original game spell icons; keep their visibility stable through combat; expose pet-state availability in hover tooltips without changing protected attributes.
+- [x] Place aspect buttons on a dedicated first row and feeder/menu/settings controls on a separate second row; keep Preview buttons nonfunctional.
 - [x] Bump alpha version, update testing and design notes, build the ZIP, and verify its declared file list.
 - [x] Run the full Lua 5.1 test suite, syntax-check all TOC Lua files, and review the diff for protected actions, privacy, and package contents.
 

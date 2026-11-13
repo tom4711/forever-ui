@@ -60,4 +60,6 @@ Das Layout nutzt den Balken über fast die volle Breite, die XP-Zahlen im Kopfbe
 
 ## XP-Einheiten und Hunter-Klickaktionen (Alpha 0.1.5)
 
-67 Offline-Tests bestehen. Hinzugekommen sind unabhängige SavedVariables-Auswahl für Quest- und Ruhebonus in XP/Prozent sowie Hunter-Modelltests für höchste erlernte Aspektränge und Pet-Zustände. Sichere Klickbuttons für Aspekte, Mend Pet und Revive Pet werden außerhalb des Kampfes konfiguriert. Das tatsächliche Zauberwirken, Zielverhalten und Layout im Forever-Client müssen im Spiel bestätigt werden.
+69 Offline-Tests bestehen. Hinzugekommen sind unabhängige SavedVariables-Auswahl für Quest- und Ruhebonus in XP/Prozent sowie Hunter-Modelltests für höchste erlernte Aspektränge und Pet-Zustände. Sichere Klickbuttons für Aspekte, Mend Pet und Revive Pet werden außerhalb des Kampfes konfiguriert. Der neue Aspektbereich hat eine eigene Zeile oberhalb der Futter- und Werkzeugbuttons. Das tatsächliche Zauberwirken, Zielverhalten und Layout im Forever-Client müssen im Spiel bestätigt werden.
+
+Die Abschlussprüfung hat die Pet-Button-Slots über wiederholte Aktualisierungen, die Hunter-Skalierung und den Abstand zum Futterbutton durch zusätzliche Offline-Tests abgesichert.

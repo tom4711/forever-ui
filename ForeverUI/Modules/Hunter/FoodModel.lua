@@ -24,7 +24,7 @@ function ns.FoodModel.FeedPosition(geometry)
     if geometry.scale<=0 or geometry.parentScale<=0 then return nil end
     local ratio=geometry.parentScale/geometry.scale
     return {point="TOPLEFT",relativePoint="BOTTOMLEFT",x=geometry.left+232-geometry.parentLeft*ratio,
-        y=geometry.top-111-geometry.parentBottom*ratio}
+        y=geometry.top-166-geometry.parentBottom*ratio}
 end
 
 function ns.FoodModel.State(data)

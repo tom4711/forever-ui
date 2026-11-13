@@ -29,10 +29,11 @@ local function geometry()
 end
 local function place(button,index)
     local g=geometry();if not g then return false end
-    local base=ns.FoodModel.FeedPosition(g)
-    if not base then return false end
+    local position=ns.HunterActionModel.Position(g,index)
+    if not position then return false end
+    button:SetScale(position.scale)
     button:ClearAllPoints()
-    button:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",base.x-232+index*36,base.y)
+    button:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",position.x,position.y)
     return true
 end
 local function tooltip(button,key,id)
@@ -83,11 +84,12 @@ local function apply()
         local id=ns.HunterActionModel.HighestKnown(ns.HunterActionModel.PetSpells[action],knownRanks)
         if id then
             wanted[action]=true
-            if id and (not buttons[action]or buttons[action].spellID~=id)then
+            local slot=index;index=index+1
+            if not buttons[action]or buttons[action].spellID~=id then
                 if buttons[action]then buttons[action]:Hide()end
-                index=index+1;buttons[action]=create(action,id,index-1);buttons[action].spellID=id
+                buttons[action]=create(action,id,slot);buttons[action].spellID=id
             end
-            if buttons[action]then place(buttons[action],index-1);buttons[action]:SetShown(visible and not preview)end
+            place(buttons[action],slot);buttons[action]:SetShown(visible and not preview)
         end
     end
     for key,button in pairs(buttons)do if not wanted[key]then button:Hide();buttons[key]=nil end end

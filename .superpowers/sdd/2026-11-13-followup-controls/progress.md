@@ -9,3 +9,8 @@ Task 2: in progress
 
 Task 2: Ruling: Mend Pet uses a secure [@pet,exists,nodead] macro and Revive Pet uses [@pet,dead], not a forced unit=pet Spell action — Classic Hunter macros use pet-state conditionals and Revive Pet may not accept a living/dead unit target; direct spell actions remain for aspects. Cost if wrong: pet actions may not cast on the intended pet state; manual game checks are required.
 Task 2: complete (tests: Lua 5.1 tests/run.lua -> 67 tests, 0 failures; luac syntax check -> pass; git diff --check -> pass)
+
+Final review: Important findings fixed in one pass — stable action slots, scaled button anchors and non-overlapping action/tool rows; tests in hunter_actions_test.lua and food_test.lua pass (69/69).
+Final: minor (deferred): Preview XP labels do not rerender immediately when switching units; main in-game XP labels do. Cost if wrong: preview may show the previous unit until rebuilt.
+Final: minor (deferred): A known pet spell without a returned localized name may not produce its macro button until a later spell refresh. Cost if wrong: pet helper button can be absent temporarily.
+Final: minor (deferred): Pet-state availability is shown in hover text only rather than changing the button face. Cost if wrong: availability is less visible at a glance.

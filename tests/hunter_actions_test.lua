@@ -1,4 +1,5 @@
 local ns={}
+loadAddon("Modules/Hunter/FoodModel.lua",ns)
 loadAddon("Modules/Hunter/ActionModel.lua",ns)
 local function model() assert(ns.HunterActionModel,"Hunter action model is missing"); return ns.HunterActionModel end
 
@@ -34,4 +35,18 @@ test("pet action macros target only the required pet state",function()
     assert(model().PetMacro("mend","Mend Pet")=="/cast [@pet,exists,nodead] Mend Pet")
     assert(model().PetMacro("revive","Revive Pet")=="/cast [@pet,dead] Revive Pet")
     assert(model().PetMacro("mend",nil)==nil)
+end)
+
+test("action slots remain distinct across independent refresh layouts",function()
+    local a=model().Slots(6,{"mend","revive"})
+    local b=model().Slots(6,{"mend","revive"})
+    assert(a.mend==6 and a.revive==7 and b.mend==6 and b.revive==7)
+end)
+
+test("action positions use scaled hunter coordinates on a separate row",function()
+    local g={left=100,top=500,scale=0.65,parentScale=1,parentLeft=0,parentBottom=0}
+    local p=model().Position(g,7)
+    assert(p.x==352 and p.y==389 and p.scale==0.65)
+    local feed=ns.FoodModel.FeedPosition(g)
+    assert(feed.x==332 and feed.y==334)
 end)

@@ -21,3 +21,6 @@ Regression test: XP panel initializes from a live snapshot even before the world
 User runtime finding: both Hunter and XP were absent after restart and only Hunter appeared after manual toggle. Root cause confirmed: Forever rejects `LEARNED_SPELL_IN_TAB`; exception in Hunter.Init aborted the shared PLAYER_LOGIN callback before XP.Init. Replaced with Forever-supported `LEARNED_SPELL_IN_SKILL_LINE` and retained `SPELLS_CHANGED`. `spell refresh listeners use Forever event names only`: RED before / GREEN after.
 Ruling: rely on the documented Forever `LEARNED_SPELL_IN_SKILL_LINE` event alongside `SPELLS_CHANGED` for learned spell updates — the rejected legacy event raises at registration and prevents module initialization; the cost if the new event differs in-game is missing immediate refresh until SPELLS_CHANGED, though startup still works.
 71 tests pass; final install is Alpha 0.1.7.
+
+User runtime finding: Hunter and Pet buttons were visible but did not cast. Root cause narrowed to action click delivery; Forever fishing UI documents that Up-only clicks can be ignored on some clients. Actions now register both LeftButtonDown and LeftButtonUp, explicitly enable mouse input, and use a frame level above the draggable Hunter root. The exact same `type1=spell` path as the working Feed button is retained.
+72 tests pass; pending user confirmation in-game.

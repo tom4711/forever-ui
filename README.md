@@ -4,7 +4,7 @@ Ein eigenständiges WoW-Forever-Addon mit Hunter- und XP-Modul in einer gemeinsa
 
 ## Stand
 
-**0.1.7-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
+**0.1.8-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
 
 ## Funktionen
 

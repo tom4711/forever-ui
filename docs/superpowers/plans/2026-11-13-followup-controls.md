@@ -67,3 +67,7 @@ Falls `PLAYER_ENTERING_WORLD` beim ersten Aufruf verspätet eintrifft, bleibt da
 ## Startkorrektur nach Forever-Client-Test
 
 `LEARNED_SPELL_IN_TAB` ist auf Forever unbekannt und unterbrach beim Login den restlichen `PLAYER_LOGIN`-Handler, sodass XP und Hunter nicht initialisiert wurden. Die Spell-Refresh-Liste verwendet jetzt `LEARNED_SPELL_IN_SKILL_LINE` und `SPELLS_CHANGED`; ein Regressionstest pinnt beide Eventnamen.
+
+## Secure-Klickkorrektur nach Spieltest
+
+Hunter-Aktionen registrieren Links-Drücken und Loslassen, aktivieren Mausereignisse ausdrücklich und liegen fünf Frame-Level über dem beweglichen Hunter-Root. Damit werden Forever-spezifische Up-only-Klickausfälle und überdeckende Frames abgefangen.

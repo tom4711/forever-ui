@@ -56,3 +56,8 @@ test("spell refresh listeners use Forever event names only",function()
     local events=model().SpellEvents
     assert(#events==2 and events[1]=="SPELLS_CHANGED" and events[2]=="LEARNED_SPELL_IN_SKILL_LINE")
 end)
+
+test("secure hunter buttons accept mouse down and up on Forever",function()
+    local clicks=model().ClickEvents
+    assert(#clicks==2 and clicks[1]=="LeftButtonDown" and clicks[2]=="LeftButtonUp")
+end)

@@ -57,12 +57,14 @@ local function create(key,id,index)
     button:SetSize(32,32);UI.Decorate(button)
     button.icon=button:CreateTexture(nil,"ARTWORK");button.icon:SetPoint("TOPLEFT",4,-4);button.icon:SetPoint("BOTTOMRIGHT",-4,4)
     button.icon:SetTexture(spellIcon(id));button.icon:SetTexCoord(0.07,0.93,0.07,0.93)
-    button:RegisterForClicks("LeftButtonUp");button:SetAttribute("useOnKeyDown",false)
+    button:RegisterForClicks(unpack(ns.HunterActionModel.ClickEvents));button:EnableMouse(true);button:SetAttribute("useOnKeyDown",false)
     if key=="mend"or key=="revive"then
         button:SetAttribute("type1","macro");button:SetAttribute("macrotext1",ns.HunterActionModel.PetMacro(key,spellName(id)))
     else button:SetAttribute("type1","spell");button:SetAttribute("spell",id) end
     button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","ADD")
-    button:SetClampedToScreen(true);tooltip(button,key,id)
+    button:SetClampedToScreen(true)
+    if root then button:SetFrameLevel(root:GetFrameLevel()+5)end
+    tooltip(button,key,id)
     button:Show();place(button,index)
     return button
 end

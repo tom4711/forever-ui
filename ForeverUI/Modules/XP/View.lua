@@ -1,7 +1,7 @@
 local _,ns=...
 local UI,T=ns.UI,ns.Theme
 ns.XPView={}
-function ns.XPView.Create(name)
+function ns.XPView.Create(name,preview)
     local L=ns.L
     local frame=UI.CreatePanel(UIParent,name);frame:SetSize(620,145)
     local icon=UI.CreateIconButton(frame);icon:SetPoint("TOPLEFT",17,-17);icon:SetSize(48,48);icon.icon:SetTexture(T.icons.xp)
@@ -46,7 +46,7 @@ function ns.XPView.Create(name)
         eta:SetText(L.NEXT_LEVEL..": |cffcbdad6"..ns.Format.Duration(data.eta).."|r")
         elapsed:SetText(L.SESSION..": |cffcbdad6"..ns.Format.Duration(data.elapsed).."|r")
         earned:SetText(L.SESSION_XP..": |cffcbdad6"..ns.Format.Number(data.earned).."|r")
-        reset:SetText(data.measurementReset and L.RESET_SHORT or "")
+        reset:SetText(data.measurementReset and L.RESET_SHORT or preview and L.PREVIEW or "")
     end
     frame:Hide();return view
 end

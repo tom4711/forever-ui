@@ -30,3 +30,7 @@ Anmeldung, UI-Neuladen, Zonenwechsel, Charakterklassen, vier Reichweiten und unb
 ## XP-Modul
 
 40 Offline-Tests bestehen, darunter ein Levelübergang mit exakt 20 XP Gewinn, unveränderte Folgemeldungen, Erholungsdeckelung, mehrstufige Sprünge, Maximallevel sowie getrennte Behandlung von Reload und neuer Anmeldung. Ein vorübergehender Verlust lesbarer Daten führt zu einer gekennzeichneten neuen Messung. Das Zusammenspiel echter XP-/Level-Ereignisse ist noch im Client zu prüfen.
+
+## Paketprüfung
+
+Das Alpha-ZIP enthält 22 deklarierte Dateien unter genau einem `ForeverUI/`-Wurzelordner. TOC und Laufzeitdateien wurden auf Vollständigkeit geprüft. Referenzbilder, Browservorschau, Tests, Arbeitsdateien und Blizzard-Mediendateien werden nicht ausgeliefert. Der vollständige Spieltest ist noch offen; es wird ausdrücklich kein stabiler Release zugesagt.

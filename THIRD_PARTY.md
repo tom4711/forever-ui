@@ -1,6 +1,6 @@
 # Referenzprojekte und Herkunft
 
-Stand: 13. November 2026. Bisher wurden kein fremder Addon-Code und keine fremden Grafikdateien in dieses Repository übernommen.
+Stand: 13. November 2026. Keine eigenen Medien der Referenz-Addons werden ausgeliefert. Die technische ForeverHunter-Referenz wird mit ihrem MIT-Hinweis dokumentiert.
 
 ## ForeverHunter
 
@@ -10,7 +10,7 @@ Stand: 13. November 2026. Bisher wurden kein fremder Addon-Code und keine fremde
 - Lizenzseite: https://www.curseforge.com/wow/addons/foreverhunter/license
 - Rolle: funktionale Referenz für die Hunter-Anzeigen und mögliche Grundlage nach Quellcodeprüfung.
 
-Vor einer Übernahme müssen die Lizenz und die Copyright-Hinweise der konkreten Quelldateien geprüft und erhalten werden.
+Die eigene Range-/Feed-Implementierung orientiert sich an den dort verwendeten API-Prüfungen und sicheren Fütterattributen. Der vollständige Originalhinweis `Copyright (c) 2026 FeuerRabe` mit MIT-Lizenz liegt in `ForeverUI/Notices/ForeverHunter-LICENSE` und wird mit dem Addon ausgeliefert. Keine enthaltenen Bibliotheken wurden übernommen.
 
 ## ForeverXPBar
 

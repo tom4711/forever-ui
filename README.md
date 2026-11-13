@@ -1,36 +1,46 @@
 # Forever UI
 
-Ein persönliches WoW-Forever-Projekt für eine gemeinsame Gestaltung von Hunter-Anzeigen und einer XP-Leiste. Die visuelle Referenz ist ForeverFishing.
-
-## Geplanter Umfang
-
-- Hunter-Anzeigen mit dem Funktionsumfang von ForeverHunter: Reichweitenstatus, Munitionszähler und Warnung, Begleiterstimmung und Fütterbutton.
-- Eine XP-Leiste mit dem gewünschten Funktionsumfang von ForeverXPBar.
-- Eine zusammenpassende Oberfläche für beide Bereiche, einschließlich ihrer Einstellungen.
-
-Die genaue Gestaltung und die technische Umsetzung werden noch ausgearbeitet. Ob eigene Addons, Erweiterungen oder Anpassungen der bestehenden Projekte sinnvoll sind, wird nach Prüfung des jeweiligen Quellcodes entschieden.
+Ein eigenständiges WoW-Forever-Addon mit Hunter- und XP-Modul in einer gemeinsamen Fantasy-Gestaltung: dunkles Petrol, Goldrahmen und gut lesbare Serifenschrift. Die vom Nutzer gezeigte ForeverFishing-Ansicht dient als Stilreferenz.
 
 ## Stand
 
-Projektstart. Dieses Repository enthält bisher die Projektbeschreibung und die Lizenzierung. Es gibt noch keinen installierbaren Addon-Code und keine im Spiel geprüfte Version.
+**0.1.0-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
 
-## Erste Umsetzung
+## Funktionen
 
-Gewählt ist ein eigenständiges Forever UI mit Hunter- und XP-Modul. Die erste Version wird mit einer gemeinsamen Designvorschau begonnen; anschließend werden Hunter-Kernfunktionen und eine XP-Leiste mit Sitzungsstatistik umgesetzt.
+- Hunter: Reichweitenzustände einschließlich unbekannter Werte, Munition mit einstellbarer Warnung und Begleiterstimmung.
+- Füttern: geeignete Futterauswahl aus den Taschen und ein sicherer Klickbutton. Geschützte Änderungen werden während des Kampfes vorgemerkt.
+- XP: Fortschritt, Erholungsbonus, Sitzungsgewinn/-dauer, XP pro Stunde und geschätzte Zeit bis zum nächsten Level.
+- Getrennte Sichtbarkeit, Position und Skalierung pro Modul; Einstellungen pro Charakter. Hunter wird nur auf Jägern aktiviert.
+- Deutsch mit englischem Fallback; keine anderen Addons als Voraussetzung.
 
-- [Zielbild und vorgeschlagener Umfang von v0.1](docs/superpowers/specs/2026-11-13-first-version-design.md)
-- [Umsetzungsplan mit Prüfschritten](docs/superpowers/plans/2026-11-13-first-version.md)
+## Installation und Bedienung
 
-Beide Dokumente sind Entwürfe zur Prüfung. Die Implementierung hat noch nicht begonnen.
+Den Ordner `ForeverUI` nach `Interface/AddOns/` im WoW-Forever-Client kopieren. Das Ergebnis muss `Interface/AddOns/ForeverUI/ForeverUI.toc` sein. Danach den Client neu starten und das Addon aktivieren.
 
-## Nutzung und Mitarbeit
+- `/fui` öffnet die Einstellungen.
+- `/fui preview` schaltet eine ausdrücklich als Beispieldaten gekennzeichnete Vorschau um.
+- Positionen zum Verschieben entsperren und die jeweilige Anzeige mit Alt ziehen.
+- Linksklick auf den Fütterbutton verwendet das gewählte Futter; Rechtsklick wählt anderes geeignetes Futter.
 
-Das Repository ist öffentlich, damit andere die Arbeit nutzen, ändern und weitergeben können. Es besteht kein fester Veröffentlichungsplan für CurseForge oder andere Addon-Portale. Beiträge sind willkommen.
+Die Blizzard-XP-Leiste bleibt erhalten. Ein Maximallevel-Schalter steuert die zusätzliche XP-Anzeige. Quest-XP-Vorschau, Auto-Quest und Level-Rennen gehören nicht zu dieser ersten Version.
 
-## Lizenz und Referenzen
+## Designvorschau
 
-Die eigenen Inhalte dieses Projekts stehen unter der [MIT-Lizenz](LICENSE).
+`preview/index.html` lässt sich direkt im Browser öffnen. Diese Ansicht zeigt die bestätigte Stilrichtung mit Beispieldaten. Sie führt keine Spielaktionen aus; ihre Vektor-Symbole und Schriften können von den Client-Ressourcen der Spielansicht abweichen.
 
-ForeverHunter, ForeverXPBar und ForeverFishing sind eigenständige Projekte. ForeverFishing dient als visuelle Referenz. Dessen Code und eigene Grafikdateien werden nicht ungeprüft übernommen. Herkunft und Lizenzen möglicher Übernahmen werden in [THIRD_PARTY.md](THIRD_PARTY.md) dokumentiert; erforderliche Copyright- und Lizenzhinweise bleiben erhalten.
+## Entwicklung
 
-Dies ist ein unabhängiges Hobbyprojekt von [tom4711](https://github.com/tom4711).
+Mit einem Lua-5.1-kompatiblen Interpreter: `lua tests/run.lua`.
+
+Paket bauen: `python3 tools/package.py --output dist`. Python 3.9 oder neuer wird benötigt. Das ZIP enthält genau einen `ForeverUI`-Ordner mit den deklarierten Laufzeitdateien und Lizenzhinweisen.
+
+- [Zielbild und Umfang von v0.1](docs/superpowers/specs/2026-11-13-first-version-design.md)
+- [Umsetzungsplan](docs/superpowers/plans/2026-11-13-first-version.md)
+- [Gestaltung und Medienherkunft](docs/media-sources.md)
+
+## Lizenz
+
+Eigener Code und die ursprüngliche Gestaltung stehen unter [MIT](LICENSE). Die Hinweise zur technischen ForeverHunter-Referenz bleiben im Addon erhalten. Referenzprojekte und ausschließlich aus dem Client geladene Ressourcen behalten ihre eigenen Rechte; Details stehen in [THIRD_PARTY.md](THIRD_PARTY.md).
+
+Persönliches Projekt von [tom4711](https://github.com/tom4711). Das Repository ist öffentlich und Beiträge sind willkommen. Ein automatisches CurseForge-Release ist nicht eingerichtet.

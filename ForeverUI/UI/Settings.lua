@@ -59,7 +59,7 @@ local function build()
         ns.Refresh()
     end)
     local hint=UI.Text(frame,11,T.muted);hint:SetPoint("BOTTOMLEFT",24,64);hint:SetText(L.MOVE_HINT)
-    local note=UI.Text(frame,11,T.muted);note:SetPoint("BOTTOMLEFT",24,22);note:SetWidth(380);note:SetText(L.SOON)
+    local note=UI.Text(frame,11,T.muted);note:SetPoint("BOTTOMLEFT",24,22);note:SetWidth(380);note:SetText(L.ALPHA_NOTE)
     frame:Hide()
 end
 function ns.Options.Refresh()

@@ -8,7 +8,7 @@ local en = {
     ENABLE_HUNTER="Show hunter module", ENABLE_XP="Show experience module",
     LOCK="Lock positions", SCALE="Scale", AMMO_WARNING="Warn below this ammunition count",
     PREVIEW_SHOW="Show preview", PREVIEW_HIDE="Close preview", RESET="Reset positions",
-    MOVE_HINT="Hold Alt and drag to move unlocked panels.", SOON="This is a design preview. Live functionality follows after design review.",
+    MOVE_HINT="Hold Alt and drag to move unlocked panels.", SOON="Example values; this preview does not trigger game actions.",
     COMBAT="Wait until combat ends before changing the preview or its layout.",
     READY="Loaded. Use /fui for settings or /fui preview for the design preview.",
     INVALID_AMMO="Enter an ammunition threshold from 0 to 100000; 0 disables the warning.",
@@ -24,7 +24,7 @@ local de = {
     SCALE="Skalierung", AMMO_WARNING="Warnung unter dieser Munitionsmenge", PREVIEW_SHOW="Vorschau anzeigen",
     PREVIEW_HIDE="Vorschau schließen", RESET="Positionen zurücksetzen",
     MOVE_HINT="Zum Verschieben entsperren und mit Alt ziehen.",
-    SOON="Dies ist die Designvorschau. Die Spielfunktionen folgen nach der Designabstimmung.",
+    SOON="Beispieldaten; diese Vorschau löst keine Spielaktionen aus.",
     COMBAT="Warte bis nach dem Kampf, um Vorschau oder Anordnung zu ändern.",
     READY="Geladen. /fui öffnet die Einstellungen; /fui preview zeigt die Designvorschau.",
     INVALID_AMMO="Gib eine Munitionsgrenze von 0 bis 100000 ein; 0 schaltet die Warnung aus.",
@@ -48,4 +48,6 @@ de.LEVEL_PREFIX="Stufe";de.MAX_LEVEL="Maximallevel";de.MAX_LEVEL_HINT="Maximalle
 de.RESET_MEASUREMENT="Messung nach einer Datenlücke neu begonnen; fehlende Gewinne wurden nicht geschätzt.";de.RESET_SHORT="Messung neu begonnen"
 en.SHOW_AT_CAP="Show XP panel at maximum level"
 de.SHOW_AT_CAP="XP-Anzeige am Maximallevel zeigen"
+en.ALPHA_NOTE="Alpha version · Please verify behavior in game."
+de.ALPHA_NOTE="Alpha-Version · Bitte Verhalten im Spiel prüfen."
 ns.L=setmetatable(GetLocale() == "deDE" and de or {}, {__index=en})

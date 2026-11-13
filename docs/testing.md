@@ -18,3 +18,7 @@
 ## Spätere Spielprüfung
 
 Anmeldung, UI-Neuladen, Zonenwechsel, Charakterklassen, vier Reichweiten und unbekannte Werte, Munitionswarnung, Begleiterzustände, Futterwahl, echtes Füttern und Kampfwechsel prüfen. Beim XP-Modul Gewinne, Levelaufstieg, Neuanmeldung, UI-Neuladen und Maximallevel prüfen. Layout bei unterschiedlichen UI-Skalierungen und langen Texten kontrollieren.
+
+## Hunter-Anbindung
+
+18 Offline-Tests bestehen, einschließlich unbekannter Reichweite, leerem versus unzugänglichem Munitionsplatz, wiederholter Warnungen und Begleiterzuständen. Die API-Anbindung und tatsächlichen Entfernungsgrenzen sind vor einer Freigabe im Client zu prüfen. Keine fremden Module wurden übernommen.

@@ -43,3 +43,23 @@ test("readers work when the optional secret predicate is unavailable", function(
     assert(r.Number(12)==12 and r.Boolean(true)==true)
     issecretvalue=previous
 end)
+
+
+test("unavailable and restricted API calls return unknown",function()
+    local r=read()
+    assert(r.Call,"Read.Call is not implemented")
+    assert(r.Call(nil)==nil)
+    assert(r.Call(function()error("restricted")end)==nil)
+    assert(r.Call(function()return false end)==false)
+    assert(r.Call(function(a)return a end,42)==42)
+end)
+
+
+test("successful empty slots are distinct from inaccessible API results",function()
+    local r=read()
+    assert(r.Try,"Read.Try is not implemented")
+    local ok,value=r.Try(function()return nil end)
+    assert(ok==true and value==nil)
+    ok,value=r.Try(function()error("restricted")end)
+    assert(ok==false and value==nil)
+end)

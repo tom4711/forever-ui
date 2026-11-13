@@ -9,7 +9,7 @@ local function check(parent,label,y,read,write)
     refreshers[#refreshers+1]=function() tick:SetShown(read()) end
     button:SetScript("OnClick",function()
         if InCombatLockdown() then ns.Print(ns.L.COMBAT);return end
-        write(not read());ns.Preview.Refresh();ns.Options.Refresh()
+        write(not read());ns.Refresh();ns.Options.Refresh()
     end)
 end
 local function scale(parent,moduleName,label,y)
@@ -22,7 +22,7 @@ local function scale(parent,moduleName,label,y)
         b:SetScript("OnClick",function()
             if InCombatLockdown() then ns.Print(ns.L.COMBAT);return end
             ns.db[moduleName].scale=math.max(0.5,math.min(2,ns.db[moduleName].scale+direction*0.05))
-            ns.Preview.Refresh();ns.Options.Refresh()
+            ns.Refresh();ns.Options.Refresh()
         end)
     end
 end
@@ -59,7 +59,7 @@ local function build()
         if InCombatLockdown() then ns.Print(L.COMBAT);return end
         local fresh=ns.Settings.Load(nil)
         ns.db.hunter.position=fresh.hunter.position;ns.db.xp.position=fresh.xp.position
-        ns.Preview.Refresh()
+        ns.Refresh()
     end)
     local hint=UI.Text(frame,11,T.muted);hint:SetPoint("BOTTOMLEFT",24,64);hint:SetText(L.MOVE_HINT)
     local note=UI.Text(frame,11,T.muted);note:SetPoint("BOTTOMLEFT",24,22);note:SetWidth(380);note:SetText(L.SOON)

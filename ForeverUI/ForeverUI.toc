@@ -8,8 +8,12 @@
 Locales.lua
 Core/Read.lua
 Core/Settings.lua
+Core/Format.lua
 UI/Theme.lua
 UI/Widgets.lua
+Modules/Hunter/Model.lua
+Modules/Hunter/View.lua
+Modules/Hunter/Controller.lua
 UI/Preview.lua
 UI/Settings.lua
 Core/Bootstrap.lua

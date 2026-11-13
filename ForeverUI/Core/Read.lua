@@ -12,3 +12,14 @@ function ns.Read.Boolean(value)
     if secret(value) or type(value) ~= "boolean" then return nil end
     return value
 end
+
+function ns.Read.Try(fn,...)
+    if type(fn)~="function" then return false,nil end
+    local ok,value=pcall(fn,...)
+    if not ok or secret(value) then return false,nil end
+    return true,value
+end
+function ns.Read.Call(fn,...)
+    local ok,value=ns.Read.Try(fn,...)
+    if ok then return value end
+end

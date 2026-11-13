@@ -99,7 +99,7 @@ assert(r.eta == 420)
 - `ns.HunterModel.AmmoTransition(previousLow, count, threshold) -> low, warn`: `count=nil` bedeutet unbekannt, `threshold=0` schaltet Warnungen aus. Beim Start wird `previousLow=false` übergeben.
 - Controller erzeugt `{zone, ammoCount, ammoIcon, petState}`; View rendert diese normalisierten Daten. `petState` unterscheidet mindestens fehlend, tot, unbekannt sowie die drei Stimmungen.
 
-- [ ] **1. Failing Tests schreiben:** gültiger Treffer der Fernkampf-/Nahkampfprüfung; tote Zone nur bei `shot=false`, `melee=false`, `near=true`; `far` nur bei drei bekannten negativen Prüfungen; fehlende Ergebnisse bleiben unbekannt. Außerdem kein/ungeeignetes Ziel, leere Munition, Warngrenze und Wiederbewaffnung der Warnung prüfen.
+- [x] **1. Failing Tests schreiben:** gültiger Treffer der Fernkampf-/Nahkampfprüfung; tote Zone nur bei `shot=false`, `melee=false`, `near=true`; `far` nur bei drei bekannten negativen Prüfungen; fehlende Ergebnisse bleiben unbekannt. Außerdem kein/ungeeignetes Ziel, leere Munition, Warngrenze und Wiederbewaffnung der Warnung prüfen.
 
 ```lua
 assert(ns.HunterModel.ResolveZone(true, false, false, true) == "deadzone")
@@ -109,11 +109,11 @@ local low, warn = ns.HunterModel.AmmoTransition(false, 199, 200)
 assert(low == true and warn == true)
 ```
 
-- [ ] **2. `lua tests/run.lua` ausführen:** neue Hunter-Tests müssen zunächst fehlschlagen.
-- [ ] **3. Datenadapter implementieren:** Prüfungen auf Auto Shot, einen Nahkampf-Itemcheck und Interaktionsreichweite im aktuellen Client validieren; bei Bedarf die öffentlich unter MIT veröffentlichte ForeverHunter-Version als Referenz heranziehen. Fehlende Itemdaten asynchron anfordern; geschützte oder nicht auswertbare Ergebnisse auf `nil` abbilden. Keine exakte Meter-/Yardzahl anzeigen.
-- [ ] **4. Munitions- und Begleiterdaten anschließen:** leeren Munitionsplatz als 0 behandeln; unbekannte Daten bleiben unbekannt. Munitionswarnungen nur beim Zustandswechsel bzw. einmal unterhalb der Schwelle beim Start. Begleiter fehlt/tot und unbekannte Stimmung getrennt behandeln.
-- [ ] **5. Ansicht und Aktivierung integrieren:** Hunter nur auf Jägern aktiv; Text plus Farbe für Reichweite, Icon und Menge für Munition, Symbol/Tooltip für Stimmung. Reichweite maximal alle 0,2 Sekunden prüfen; Pause bei ausgeblendetem Modul, kein Taschenscan pro Bild.
-- [ ] **6. Prüfen und committen:** `lua tests/run.lua` sowie dokumentierte Clientchecks für Zielwechsel, vier Reichweiten und Datenlücken. Quellübernahmen falls erfolgt exakt in `THIRD_PARTY.md` mit Original-Lizenz aufnehmen. Ergebnis: Hunter-Anzeige funktioniert ohne Fütterbutton.
+- [x] **2. `lua tests/run.lua` ausführen:** neue Hunter-Tests müssen zunächst fehlschlagen.
+- [x] **3. Datenadapter implementieren:** Prüfungen auf Auto Shot, einen Nahkampf-Itemcheck und Interaktionsreichweite im aktuellen Client validieren; bei Bedarf die öffentlich unter MIT veröffentlichte ForeverHunter-Version als Referenz heranziehen. Fehlende Itemdaten asynchron anfordern; geschützte oder nicht auswertbare Ergebnisse auf `nil` abbilden. Keine exakte Meter-/Yardzahl anzeigen.
+- [x] **4. Munitions- und Begleiterdaten anschließen:** leeren Munitionsplatz als 0 behandeln; unbekannte Daten bleiben unbekannt. Munitionswarnungen nur beim Zustandswechsel bzw. einmal unterhalb der Schwelle beim Start. Begleiter fehlt/tot und unbekannte Stimmung getrennt behandeln.
+- [x] **5. Ansicht und Aktivierung integrieren:** Hunter nur auf Jägern aktiv; Text plus Farbe für Reichweite, Icon und Menge für Munition, Symbol/Tooltip für Stimmung. Reichweite maximal alle 0,2 Sekunden prüfen; Pause bei ausgeblendetem Modul, kein Taschenscan pro Bild.
+- [x] **6. Prüfen und committen:** `lua tests/run.lua` sowie dokumentierte Clientchecks für Zielwechsel, vier Reichweiten und Datenlücken. Quellübernahmen falls erfolgt exakt in `THIRD_PARTY.md` mit Original-Lizenz aufnehmen. Ergebnis: Hunter-Anzeige funktioniert ohne Fütterbutton.
 
 ## Task 4: Sicherer Fütterbutton und Einstellungen im Kampf
 

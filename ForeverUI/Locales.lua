@@ -30,4 +30,12 @@ local de = {
     INVALID_AMMO="Gib eine Munitionsgrenze von 0 bis 100000 ein; 0 schaltet die Warnung aus.",
     PREVIEW_HINT="Beispieldaten; keine Live-Spielwerte", NOT_LIVE="Noch nicht mit Spielwerten verbunden",
 }
+en.RANGE_LABEL="Range"
+en.ZONE_none="No target";en.ZONE_unknown="Unknown";en.ZONE_ranged="Ranged";en.ZONE_melee="Melee";en.ZONE_deadzone="Dead zone";en.ZONE_far="Too far"
+en.HINT_none="Select a living hostile target";en.HINT_unknown="Range cannot be evaluated";en.HINT_ranged="Your target is within shooting range";en.HINT_melee="Your target is within melee range";en.HINT_deadzone="Too close to shoot, too far to strike";en.HINT_far="Move closer to your target"
+en.PET_missing="No pet";en.PET_dead="Dead";en.PET_unknown="Unknown";en.PET_unhappy="Unhappy";en.PET_content="Content";en.PET_happy="Happy";en.AMMO_LOW="Low ammunition: %s shots left."
+de.RANGE_LABEL="Reichweite"
+de.ZONE_none="Kein Ziel";de.ZONE_unknown="Unbekannt";de.ZONE_ranged="Fernkampf";de.ZONE_melee="Nahkampf";de.ZONE_deadzone="Tote Zone";de.ZONE_far="Zu weit"
+de.HINT_none="Wähle ein lebendes gegnerisches Ziel";de.HINT_unknown="Reichweite ist nicht auswertbar";de.HINT_ranged="Dein Ziel ist in Schussreichweite";de.HINT_melee="Dein Ziel ist in Nahkampfreichweite";de.HINT_deadzone="Zu nah zum Schießen, zu weit zum Zuschlagen";de.HINT_far="Nähere dich deinem Ziel"
+de.PET_missing="Kein Tier";de.PET_dead="Tot";de.PET_unknown="Unbekannt";de.PET_unhappy="Unglücklich";de.PET_content="Zufrieden";de.PET_happy="Glücklich";de.AMMO_LOW="Wenig Munition: noch %s Schuss."
 ns.L=setmetatable(GetLocale() == "deDE" and de or {}, {__index=en})

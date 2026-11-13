@@ -58,7 +58,7 @@ function ns.Preview.SetEnabled(value)
     if InCombatLockdown() then ns.Print(ns.L.COMBAT);return false end
     if not hunter then build() end
     enabled=value == true
-    ns.Preview.Refresh()
+    ns.Refresh()
     if ns.Options.Refresh then ns.Options.Refresh() end
     return true
 end

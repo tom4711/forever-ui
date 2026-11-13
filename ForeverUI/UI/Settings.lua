@@ -8,7 +8,6 @@ local function check(parent,label,y,read,write)
     local text=UI.Text(parent,13,T.text);text:SetPoint("LEFT",button,"RIGHT",10,0);text:SetText(label)
     refreshers[#refreshers+1]=function() tick:SetShown(read()) end
     button:SetScript("OnClick",function()
-        if InCombatLockdown() then ns.Print(ns.L.COMBAT);return end
         write(not read());ns.Refresh();ns.Options.Refresh()
     end)
 end
@@ -20,8 +19,7 @@ local function scale(parent,moduleName,label,y)
         local b=UI.Button(parent,direction==-1 and "−" or "+",25)
         b:SetSize(25,24);b:SetPoint("TOPRIGHT",direction==-1 and -105 or -25,y+5)
         b:SetScript("OnClick",function()
-            if InCombatLockdown() then ns.Print(ns.L.COMBAT);return end
-            ns.db[moduleName].scale=math.max(0.5,math.min(2,ns.db[moduleName].scale+direction*0.05))
+                ns.db[moduleName].scale=math.max(0.5,math.min(2,ns.db[moduleName].scale+direction*0.05))
             ns.Refresh();ns.Options.Refresh()
         end)
     end
@@ -45,10 +43,9 @@ local function build()
     input:SetAutoFocus(false);input:SetNumeric(true);input:SetMaxLetters(6)
     refreshers[#refreshers+1]=function()if not input:HasFocus() then input:SetText(ns.db.hunter.ammoWarning) end end
     input:SetScript("OnEnterPressed",function(self)
-        if InCombatLockdown() then ns.Print(L.COMBAT);self:ClearFocus();return end
         local value=tonumber(self:GetText())
         if not value or value<0 or value>100000 then ns.Print(L.INVALID_AMMO);return end
-        ns.db.hunter.ammoWarning=math.floor(value);self:ClearFocus();ns.Options.Refresh()
+        ns.db.hunter.ammoWarning=math.floor(value);self:ClearFocus();ns.Refresh();ns.Options.Refresh()
     end)
     input:SetScript("OnEscapePressed",function(self)self:ClearFocus();ns.Options.Refresh()end)
     local preview=UI.Button(frame,L.PREVIEW_SHOW,175);preview:SetPoint("BOTTOMLEFT",24,95)
@@ -56,7 +53,6 @@ local function build()
     refreshers[#refreshers+1]=function()preview.label:SetText(ns.Preview.IsEnabled() and L.PREVIEW_HIDE or L.PREVIEW_SHOW)end
     local reset=UI.Button(frame,L.RESET,185);reset:SetPoint("BOTTOMRIGHT",-24,95)
     reset:SetScript("OnClick",function()
-        if InCombatLockdown() then ns.Print(L.COMBAT);return end
         local fresh=ns.Settings.Load(nil)
         ns.db.hunter.position=fresh.hunter.position;ns.db.xp.position=fresh.xp.position
         ns.Refresh()

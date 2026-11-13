@@ -17,6 +17,7 @@ function ns.Read.Try(fn,...)
     if type(fn)~="function" then return false,nil end
     local ok,value=pcall(fn,...)
     if not ok or secret(value) then return false,nil end
+    if type(value)=="table" and issecrettable and issecrettable(value) then return false,nil end
     return true,value
 end
 function ns.Read.Call(fn,...)

@@ -22,3 +22,7 @@ Anmeldung, UI-Neuladen, Zonenwechsel, Charakterklassen, vier Reichweiten und unb
 ## Hunter-Anbindung
 
 18 Offline-Tests bestehen, einschließlich unbekannter Reichweite, leerem versus unzugänglichem Munitionsplatz, wiederholter Warnungen und Begleiterzuständen. Die API-Anbindung und tatsächlichen Entfernungsgrenzen sind vor einer Freigabe im Client zu prüfen. Keine fremden Module wurden übernommen.
+
+## Fütterfunktion
+
+28 Offline-Tests bestehen. Hinzugekommen sind Kampfsperre/erneuter Kampfbeginn, Ersetzen vorgemerkter Einstellungen, Futterstapel, nicht geladene Gegenstandsnamen und gesicherte Futterwahl. Der geschützte Button wird ohne Verankerung an den verschiebbaren Normalframe positioniert. Die WoW-Sicherheitsmechanik und echtes Füttern sind damit nicht offline bestätigt; diese Spieltests bleiben offen.

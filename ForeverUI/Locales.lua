@@ -38,4 +38,8 @@ de.RANGE_LABEL="Reichweite"
 de.ZONE_none="Kein Ziel";de.ZONE_unknown="Unbekannt";de.ZONE_ranged="Fernkampf";de.ZONE_melee="Nahkampf";de.ZONE_deadzone="Tote Zone";de.ZONE_far="Zu weit"
 de.HINT_none="Wähle ein lebendes gegnerisches Ziel";de.HINT_unknown="Reichweite ist nicht auswertbar";de.HINT_ranged="Dein Ziel ist in Schussreichweite";de.HINT_melee="Dein Ziel ist in Nahkampfreichweite";de.HINT_deadzone="Zu nah zum Schießen, zu weit zum Zuschlagen";de.HINT_far="Nähere dich deinem Ziel"
 de.PET_missing="Kein Tier";de.PET_dead="Tot";de.PET_unknown="Unbekannt";de.PET_unhappy="Unglücklich";de.PET_content="Zufrieden";de.PET_happy="Glücklich";de.AMMO_LOW="Wenig Munition: noch %s Schuss."
+en.FOOD_EMPTY="The selected food is used up. Right-click to choose another."
+en.SELECT_FOOD="Right-click to select pet food.";en.NO_FOOD="No suitable food in your bags";en.ITEM_LOADING="Loading item…";en.FEED_HINT="Left click: feed · Right click: choose food";en.MENU_UNAVAILABLE="Food selection is unavailable on this client."
+de.FOOD_EMPTY="Das gewählte Futter ist aufgebraucht. Wähle per Rechtsklick anderes Futter."
+de.SELECT_FOOD="Wähle per Rechtsklick Futter für deinen Begleiter.";de.NO_FOOD="Kein geeignetes Futter in den Taschen";de.ITEM_LOADING="Gegenstand wird geladen…";de.FEED_HINT="Linksklick: füttern · Rechtsklick: Futter wählen";de.MENU_UNAVAILABLE="Die Futterauswahl ist in diesem Client nicht verfügbar."
 ns.L=setmetatable(GetLocale() == "deDE" and de or {}, {__index=en})

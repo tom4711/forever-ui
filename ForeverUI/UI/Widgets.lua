@@ -84,13 +84,17 @@ end
 function UI.MakeMovable(frame,moduleName)
     frame:SetMovable(true);frame:EnableMouse(true);frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart",function(self)
-        if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then self:StartMoving();self.dragging=true end
+        if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then
+            if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(true)end
+            self:StartMoving();self.dragging=true
+        end
     end)
     frame:SetScript("OnDragStop",function(self)
         if not self.dragging then return end
         self:StopMovingOrSizing();self.dragging=false
         local point,_,relativePoint,x,y=self:GetPoint()
         ns.db[moduleName].position={point=point,relativePoint=relativePoint,x=x,y=y}
+        if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(false)end
     end)
 end
 function UI.Place(frame,moduleName)

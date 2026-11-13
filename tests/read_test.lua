@@ -63,3 +63,13 @@ test("successful empty slots are distinct from inaccessible API results",functio
     ok,value=r.Try(function()error("restricted")end)
     assert(ok==false and value==nil)
 end)
+
+
+test("restricted tables are not exposed to code that would inspect fields",function()
+    local r=read();local restricted={}
+    local previous=issecrettable
+    issecrettable=function(value)return rawequal(value,restricted)end
+    local ok,value=r.Try(function()return restricted end)
+    issecrettable=previous
+    assert(ok==false and value==nil)
+end)

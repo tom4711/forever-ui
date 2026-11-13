@@ -30,6 +30,7 @@ function ns.Settings.Load(saved)
     local result = {schemaVersion=1,locked=boolean(saved.locked,true),hunter=module(hunter,-70),xp=module(xp,-255)}
     local warning = hunter.ammoWarning
     if not finite(warning) or warning < 0 or warning > 100000 then warning = 200 end
+    if finite(hunter.food) and hunter.food>0 then result.hunter.food=math.floor(hunter.food)end
     result.hunter.ammoWarning = math.floor(warning)
     result.xp.showAtCap = boolean(xp.showAtCap,true)
     return result

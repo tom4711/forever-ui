@@ -9,9 +9,12 @@ Locales.lua
 Core/Read.lua
 Core/Settings.lua
 Core/Format.lua
+Core/CombatQueue.lua
 UI/Theme.lua
 UI/Widgets.lua
 Modules/Hunter/Model.lua
+Modules/Hunter/FoodModel.lua
+Modules/Hunter/Feed.lua
 Modules/Hunter/View.lua
 Modules/Hunter/Controller.lua
 UI/Preview.lua

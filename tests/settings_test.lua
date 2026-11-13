@@ -44,3 +44,9 @@ test("invalid numerical options fall back rather than producing broken frames", 
     assert(c.hunter.scale == 1 and c.xp.scale == 1)
     assert(c.hunter.ammoWarning == 200)
 end)
+
+
+test("selected food survives reload without accepting invalid item identifiers",function()
+    assert(load({hunter={food=1234}}).hunter.food==1234)
+    assert(load({hunter={food=-1}}).hunter.food==nil)
+end)

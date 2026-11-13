@@ -4,13 +4,13 @@ Ein eigenständiges WoW-Forever-Addon mit Hunter- und XP-Modul in einer gemeinsa
 
 ## Stand
 
-**0.1.2-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
+**0.1.3-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
 
 ## Funktionen
 
 - Hunter: Reichweitenzustände einschließlich unbekannter Werte, Munition mit einstellbarer Warnung und Begleiterstimmung.
 - Füttern: geeignete Futterauswahl aus den Taschen und ein sicherer Klickbutton. Geschützte Änderungen werden während des Kampfes vorgemerkt.
-- XP: Fortschritt, Erholungsbonus, Sitzungsgewinn/-dauer, XP pro Stunde und geschätzte Zeit bis zum nächsten Level.
+- XP: getrennte Vorschausegmente für aktuelle XP (Türkis), fertige Questbelohnungen (Gold) und Erholungsbonus (Blau), dazu Sitzungsgewinn/-dauer, XP pro Stunde und geschätzte Restzeit. Die Vorschau wird auf die nächste Levelgrenze begrenzt; vollständige Bonuswerte stehen als Zahlen daneben.
 - Getrennte Sichtbarkeit, Position und Skalierung pro Modul; zusätzliche XP-Breite von 620 bis 1600 Pixeln ohne Änderung von Höhe oder Schriftgröße; Einstellungen pro Charakter. Hunter wird nur auf Jägern aktiviert.
 - Deutsch mit englischem Fallback; keine anderen Addons als Voraussetzung.
 
@@ -23,7 +23,7 @@ Den Ordner `ForeverUI` nach `Interface/AddOns/` im WoW-Forever-Client kopieren. 
 - Positionen zum Verschieben entsperren und die jeweilige Anzeige mit Alt ziehen.
 - Linksklick auf den Fütterbutton verwendet das gewählte Futter; Rechtsklick wählt anderes geeignetes Futter.
 
-Die Blizzard-XP-Leiste bleibt erhalten. Ein Maximallevel-Schalter steuert die zusätzliche XP-Anzeige. Quest-XP-Vorschau, Auto-Quest und Level-Rennen gehören nicht zu dieser ersten Version.
+Die Blizzard-XP-Leiste bleibt erhalten. Ein Maximallevel-Schalter steuert die zusätzliche XP-Anzeige. Auto-Quest und Level-Rennen gehören nicht zu dieser ersten Version. Quest-Vorschau-XP werden erst bei tatsächlicher Belohnung zu verdienten Sitzungs-XP.
 
 ## Designvorschau
 

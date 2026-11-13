@@ -57,7 +57,7 @@ Eigene Implementierung ist der Standard. Geeignete Teile von ForeverHunter dürf
 
 ### Bewusst spätere Erweiterungen
 
-Vorschau auf XP aus noch nicht abgegebenen Quests, Auto-Quest-Funktionen, Level-Rennen, Ranglisten, Erfolge, Minimap-Menüs, Datenbroker, Mehrcharakterprofile, Sounds und Gamepad-Bedienung werden separat priorisiert. Sie sind kein Bestandteil von v0.1. Für die spätere Funktionsgleichheit werden sie nicht als bereits erledigt betrachtet.
+Auto-Quest-Funktionen, Level-Rennen, Ranglisten, Erfolge, Minimap-Menüs, Datenbroker, Mehrcharakterprofile, Sounds und Gamepad-Bedienung werden separat priorisiert. Sie sind kein Bestandteil von v0.1. Für die spätere Funktionsgleichheit werden sie nicht als bereits erledigt betrachtet.
 
 ## Technische Leitplanken
 
@@ -87,3 +87,7 @@ Diese Dateiaufteilung und die Vorgaben für Warnschwelle, Sprachen, Maximallevel
 ## Offene Abstimmung
 
 Der Nutzer hat den vorgeschlagenen v0.1-Umfang bestätigt. Die gezeigte Browservorschau legt Gold-/Petrol-Stil, horizontale Hunter-Anzeige, darunterliegende Symbolknöpfe und die XP-Anzeige fest. Die Darstellung im echten Client muss noch geprüft werden.
+
+## Erweiterung nach dem ersten Spieltest
+
+Der Nutzer hat die Vorschau fertiger, noch nicht abgegebener Quest-XP ausdrücklich ergänzt. Dafür werden aktuelle XP türkis, Quest-XP gold und der Erholungsbonus blau als getrennte, bis zur nächsten Levelgrenze begrenzte Segmente dargestellt. Ungekürzte Mengen stehen numerisch daneben. Die Anzeige wird kompakter und nutzt die zusätzliche Breite; ihre Breite bleibt unabhängig von Höhe und Schriftgröße einstellbar.

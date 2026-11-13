@@ -62,3 +62,61 @@ function M.Restore(saved,snapshot,reloaded)
     end
     return M.New(snapshot,at)
 end
+
+function M.Segments(data)
+    local result={current={start=0,size=0},quest={start=0,size=0},rested={start=0,size=0},
+        questKnown=finite(data.questXP) and data.questXP>=0,restedKnown=finite(data.rested) and data.rested>=0}
+    if data.reliable==false then return result end
+    if data.atCap then result.current.size=1;return result end
+    if not finite(data.current)or not finite(data.maximum)or data.maximum<=0 then return result end
+    local maximum=data.maximum
+    local current=math.max(0,math.min(maximum,data.current))
+    local quest=math.min(maximum-current,result.questKnown and data.questXP or 0)
+    local rested=math.min(maximum-current-quest,result.restedKnown and data.rested or 0)
+    result.current.size=current/maximum
+    result.quest.start=current/maximum;result.quest.size=quest/maximum
+    result.rested.start=(current+quest)/maximum;result.rested.size=rested/maximum
+    return result
+end
+
+-- Completed quest rewards are preview-only, not earned session XP.
+ns.QuestXP={}
+local Q=ns.QuestXP
+function Q.Total(entries,allLoaded)
+    if not allLoaded then return nil end
+    local total,seen=0,{}
+    for _,entry in ipairs(entries)do
+        if not seen[entry.id]then
+            seen[entry.id]=true
+            if not entry.ignored then
+                if entry.complete==nil then return nil end
+                if entry.complete then
+                    if not finite(entry.rewardXP)or entry.rewardXP<0 then return nil end
+                    total=total+entry.rewardXP
+                end
+            end
+        end
+    end
+    return total
+end
+function Q.Collect(provider,ignored)
+    local count,expected=provider.Count()
+    if not finite(count)or not finite(expected)or count<0 or count>1000 or expected<0 then return nil end
+    local entries,seen,found={}, {},0
+    local allLoaded=true
+    for index=1,count do
+        local info=provider.Info(index)
+        if not info then allLoaded=false
+        elseif info.isHeader~=true then
+            local id=info.questID
+            if not finite(id)or id<=0 then allLoaded=false
+            elseif not seen[id]then
+                seen[id]=true;found=found+1
+                local complete=provider.Complete(id)
+                entries[#entries+1]={id=id,complete=complete,ignored=ignored and ignored[id],
+                    rewardXP=complete==true and provider.Reward(id)or nil}
+            end
+        end
+    end
+    return Q.Total(entries,allLoaded and found==expected)
+end

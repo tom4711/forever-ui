@@ -64,4 +64,10 @@ en.PET_HINT_unhappy="Your pet is unhappy. Suitable food improves its mood.";en.P
 de.PET_HINT_missing="Rufe deinen Begleiter, um seine Stimmung zu sehen.";de.PET_HINT_dead="Belebe deinen Begleiter wieder.";de.PET_HINT_unknown="Die Stimmung kann gerade nicht ausgelesen werden."
 de.PET_HINT_unhappy="Dein Begleiter ist unglücklich. Geeignetes Futter verbessert seine Stimmung.";de.PET_HINT_content="Dein Begleiter ist zufrieden. Geeignetes Futter kann seine Stimmung verbessern.";de.PET_HINT_happy="Dein Begleiter ist glücklich."
 en.CLOSE="Close";de.CLOSE="Schließen"
+en.QUEST_XP="Completed quests";de.QUEST_XP="Fertige Quests"
+en.CURRENT_XP="Current XP";de.CURRENT_XP="Aktuelle XP"
+en.GAIN_SHORT="Earned";de.GAIN_SHORT="Gewinn"
+en.GAIN_RESET="Since reset";de.GAIN_RESET="Seit Neustart"
+en.QUEST_PREVIEW_HINT="Gold shows unclaimed XP from completed quests; blue shows rested bonus. Segments stop at the next level boundary."
+de.QUEST_PREVIEW_HINT="Gold zeigt offene XP aus erledigten Quests, Blau den Erholungsbonus. Die Segmente enden an der nächsten Levelgrenze."
 ns.L=setmetatable(GetLocale() == "deDE" and de or {}, {__index=en})

@@ -7,7 +7,7 @@ local function build()
     xp=ns.XPView.Create("ForeverUI_PreviewXP",true)
     hunter.Render({zone="ranged",ammoCount=1248,ammoIcon=ns.Theme.icons.ammo,ammoLow=false,petState="happy"})
     xp.Render({level=32,current=36240,maximum=62000,percent=36240/62000*100,rested=12400,restedEnd=48640,
-        remaining=25760,earned=14632,elapsed=2832,perHour=18600,eta=25760/18600*3600,atCap=false,reliable=true})
+        remaining=25760,questXP=6200,earned=14632,elapsed=2832,perHour=18600,eta=25760/18600*3600,atCap=false,reliable=true})
 end
 function ns.Preview.IsEnabled()return enabled end
 function ns.Preview.Refresh()

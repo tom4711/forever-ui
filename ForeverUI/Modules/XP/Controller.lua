@@ -1,7 +1,36 @@
 local _,ns=...
 local R,M=ns.Read,ns.XPModel
+local Q=ns.QuestXP
+local requested={}
+function Q.Read(ignored)
+    local R=ns.Read
+    if not C_QuestLog or type(C_QuestLog.GetNumQuestLogEntries)~="function"then return nil end
+    local provider={}
+    function provider.Count()
+        local ok,count,expected=pcall(C_QuestLog.GetNumQuestLogEntries)
+        if not ok then return nil,nil end
+        return R.Number(count),R.Number(expected)
+    end
+    function provider.Info(index)
+        local info=R.Call(C_QuestLog.GetInfo,index)
+        if type(info)~="table"then return nil end
+        return {questID=R.Number(info.questID),isHeader=R.Boolean(info.isHeader)}
+    end
+    function provider.Complete(id)return R.Boolean(R.Call(C_QuestLog.IsComplete,id))end
+    function provider.Reward(id)
+        local reward=R.Number(R.Call(C_QuestLog.GetQuestLogRewardXP or GetQuestLogRewardXP,id))
+        if reward==nil and not requested[id]and C_QuestLog.RequestLoadQuestByID then
+            requested[id]=true;R.Call(C_QuestLog.RequestLoadQuestByID,id)
+        end
+        return reward
+    end
+    return Q.Collect(provider,ignored)
+end
+
 ns.XP={}
-local state,view,events,pending
+local state,view,events,pending,pendingQuests
+local questXP
+local ignoredQuests={}
 local function number(fn,...)return R.Number(R.Call(fn,...))end
 local function now()return number(GetServerTime)or number(time)end
 local function snapshot()
@@ -17,6 +46,7 @@ local function save()if state then ns.db.xpSession=state end end
 local function render()
     if not view or not state then return end
     local summary=M.Summarize(state,now())
+    summary.questXP=questXP
     view.Render(summary)
     view.frame:SetShown(ns.db.xp.enabled and not ns.Preview.IsEnabled() and (not summary.atCap or ns.db.xp.showAtCap))
 end
@@ -30,6 +60,14 @@ local function schedule()
     pending=true
     if C_Timer and C_Timer.After then C_Timer.After(0,sample)else sample()end
 end
+local function scheduleQuests()
+    if pendingQuests then return end
+    pendingQuests=true
+    local function collect()
+        pendingQuests=false;questXP=ns.QuestXP.Read(ignoredQuests);render()
+    end
+    if C_Timer and C_Timer.After then C_Timer.After(0,collect)else collect()end
+end
 function ns.XP.Refresh()
     if not view then return end
     view.SetWidth(ns.db.xp.width)
@@ -39,15 +77,24 @@ function ns.XP.GetFrame()return view and view.frame end
 function ns.XP.Init()
     view=ns.XPView.Create("ForeverUI_XP")
     events=CreateFrame("Frame")
-    for _,event in ipairs({"PLAYER_ENTERING_WORLD","PLAYER_XP_UPDATE","PLAYER_LEVEL_UP","UPDATE_EXHAUSTION","PLAYER_LOGOUT"})do events:RegisterEvent(event)end
+    for _,event in ipairs({"PLAYER_ENTERING_WORLD","PLAYER_XP_UPDATE","PLAYER_LEVEL_UP","UPDATE_EXHAUSTION","PLAYER_LOGOUT","QUEST_LOG_UPDATE","QUEST_TURNED_IN","QUEST_REMOVED","QUEST_ACCEPTED","QUEST_DATA_LOAD_RESULT"})do events:RegisterEvent(event)end
     events:SetScript("OnEvent",function(_,event,initial,reloaded)
         if event=="PLAYER_ENTERING_WORLD"then
             local current=snapshot()
             if initial or reloaded or not state then state=M.Restore(ns.db.xpSession,current,reloaded==true)
             else state=M.Observe(state,current)end
-            save();ns.XP.Refresh()
+            save();ns.XP.Refresh();scheduleQuests()
         elseif event=="PLAYER_LOGOUT"then sample();save()
-        else schedule()end
+        elseif event=="QUEST_TURNED_IN"or event=="QUEST_REMOVED"then
+            local id=R.Number(initial)
+            if id then ignoredQuests[id]=true end
+            scheduleQuests()
+        elseif event=="QUEST_ACCEPTED"then
+            local id=R.Number(initial)
+            if id then ignoredQuests[id]=nil end
+            scheduleQuests()
+        elseif event=="QUEST_LOG_UPDATE"or event=="QUEST_DATA_LOAD_RESULT"then scheduleQuests()
+        else schedule();if event=="PLAYER_LEVEL_UP"then scheduleQuests()end end
     end)
     local elapsed=0
     events:SetScript("OnUpdate",function(_,dt)

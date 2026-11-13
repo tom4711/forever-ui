@@ -48,3 +48,11 @@ Die Alpha 0.1.1 wurde nach der Korrektur aktualisiert. Die beiden wichtigen Revi
 ## Schließen-Schaltfläche
 
 In Alpha 0.1.2 wurde die rote Fläche mit kleinem Schriftzeichen durch ein gleichmäßig gezeichnetes goldenes Kreuz auf demselben Petrol-/Gold-Control wie die übrigen Settings-Buttons ersetzt. Es gibt einen lokalisierten Schließen-Tooltip. Die verwendeten Line-Anker wurden mit der Forever-API-Dokumentation abgeglichen; die endgültige optische Beurteilung erfolgt nach dem UI-Neuladen im Spiel.
+
+## XP-Segmente und kompaktere Anzeige (Alpha 0.1.3)
+
+Auf ausdrücklichen Nutzerwunsch ergänzt: fertige Quest-XP zusätzlich zur aktuellen Erfahrung und dem Erholungsbonus. Die Farbbereiche überlappen nicht mehr; Questbelohnungen nutzen vor dem Erholungsbonus den noch freien Vorschauplatz bis zur nächsten Stufe. Vollständige Werte bleiben numerisch sichtbar. Eine unbekannte Questbelohnung wird nicht als null ausgegeben; die Quest-Auswahl wird nicht verändert.
+
+Das Layout nutzt den Balken über fast die volle Breite, die XP-Zahlen im Kopfbereich und eine gemeinsame Statistikzeile. Höhe 132 statt 145 UI-Einheiten, Balkenhöhe 23 statt 16. Breite und Skalierung bleiben getrennt. Die reale Farbzuordnung und Questbelohnungen müssen nach dem Neuladen im Client geprüft werden.
+
+59 Logiktests bestehen, einschließlich disjunkter Segmente, Begrenzung, Quest-ID statt Logindex, doppelter/fehlender Daten und bereits abgegebener Quests. Es wird keine zusätzliche Laufzeitdatei benötigt; die Erweiterung liegt in den vorhandenen XP-Modell-/Controller-Dateien und kann per `/reload` geladen werden.

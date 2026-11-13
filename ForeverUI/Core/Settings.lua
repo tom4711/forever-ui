@@ -35,6 +35,8 @@ function ns.Settings.Load(saved)
     local width=xp.width
     result.xp.width=finite(width) and width>=620 and width<=1600 and math.floor(width)or 620
     result.xp.showAtCap = boolean(xp.showAtCap,true)
+    result.xp.questDisplay=xp.questDisplay=="percent" and "percent" or "xp"
+    result.xp.restedDisplay=xp.restedDisplay=="percent" and "percent" or "xp"
     local session=saved.xpSession
     if type(session)=="table"then
         local copy={}

@@ -8,7 +8,7 @@ local en = {
     ENABLE_HUNTER="Show hunter module", ENABLE_XP="Show experience module",
     LOCK="Lock positions", SCALE="Scale", AMMO_WARNING="Warn below this ammunition count",
     PREVIEW_SHOW="Show preview", PREVIEW_HIDE="Close preview", RESET="Reset positions",
-    MOVE_HINT="Hold Alt and drag to move unlocked panels.", SOON="Example values; this preview does not trigger game actions.",
+    MOVE_HINT="Hold Alt and drag to move unlocked panels.", MOVE_HINT_MAC="Hold Option (⌥) and drag to move unlocked panels.", SOON="Example values; this preview does not trigger game actions.",
     COMBAT="Wait until combat ends before changing the preview or its layout.",
     READY="Loaded. Use /fui for settings or /fui preview for the design preview.",
     INVALID_AMMO="Enter an ammunition threshold from 0 to 100000; 0 disables the warning.",
@@ -23,7 +23,7 @@ local de = {
     ENABLE_HUNTER="Jäger-Anzeige einblenden", ENABLE_XP="XP-Leiste einblenden", LOCK="Positionen sperren",
     SCALE="Skalierung", AMMO_WARNING="Warnung unter dieser Munitionsmenge", PREVIEW_SHOW="Vorschau anzeigen",
     PREVIEW_HIDE="Vorschau schließen", RESET="Positionen zurücksetzen",
-    MOVE_HINT="Zum Verschieben entsperren und mit Alt ziehen.",
+    MOVE_HINT="Zum Verschieben entsperren und mit Alt ziehen.", MOVE_HINT_MAC="Zum Verschieben entsperren und mit Option (⌥) ziehen.",
     SOON="Beispieldaten; diese Vorschau löst keine Spielaktionen aus.",
     COMBAT="Warte bis nach dem Kampf, um Vorschau oder Anordnung zu ändern.",
     READY="Geladen. /fui öffnet die Einstellungen; /fui preview zeigt die Designvorschau.",
@@ -71,3 +71,9 @@ en.GAIN_RESET="Since reset";de.GAIN_RESET="Seit Neustart"
 en.QUEST_PREVIEW_HINT="Gold shows unclaimed XP from completed quests; blue shows rested bonus. Segments stop at the next level boundary."
 de.QUEST_PREVIEW_HINT="Gold zeigt offene XP aus erledigten Quests, Blau den Erholungsbonus. Die Segmente enden an der nächsten Levelgrenze."
 ns.L=setmetatable(GetLocale() == "deDE" and de or {}, {__index=en})
+
+en.QUEST_DISPLAY="Quest XP display";de.QUEST_DISPLAY="Quest-XP anzeigen als"
+en.RESTED_DISPLAY="Rested XP display";de.RESTED_DISPLAY="Erholungsbonus anzeigen als"
+en.DISPLAY_XP="XP";de.DISPLAY_XP="XP"
+en.DISPLAY_PERCENT="Percent";de.DISPLAY_PERCENT="Prozent"
+en.XP_PERCENT_HINT="Percent of the XP required for this level.";de.XP_PERCENT_HINT="Prozent der benötigten XP für diese Stufe."

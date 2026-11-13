@@ -4,7 +4,8 @@ ns.XPView={}
 function ns.XPView.Create(name,preview)
     local L=ns.L
     local frame=UI.CreatePanel(UIParent,name);frame:SetSize(620,132)
-    local icon=UI.CreateIconButton(frame);icon:SetPoint("TOPLEFT",18,-14);icon:SetSize(38,38);icon.icon:SetTexture(T.icons.xp)
+    local icon=UI.CreateIconButton(frame);icon:SetPoint("TOPLEFT",18,-14);icon:SetSize(38,38);icon.icon:Hide()
+    local xpMark=UI.Text(icon,19,T.goldLight);xpMark:SetPoint("CENTER",0,1);xpMark:SetText("XP")
     local title=UI.Text(frame,21,T.goldLight);title:SetPoint("TOPLEFT",70,-17)
     local percent=UI.Text(frame,16,T.teal);percent:SetPoint("TOPRIGHT",-20,-20)
     local numbers=UI.Text(frame,12,T.text);numbers:SetPoint("TOP",frame,"TOP",0,-23)
@@ -38,6 +39,16 @@ function ns.XPView.Create(name,preview)
     end)
     frame:SetScript("OnLeave",function()GameTooltip:Hide()end)
     local view={frame=frame}
+    local function displayText(amount,mode,maximum)
+        local value=ns.XPModel.DisplayAmount(amount,maximum,mode)
+        if value==nil then return "–" end
+        if mode=="percent" then
+            local text=string.format("%.1f",value)
+            if GetLocale()=="deDE" then text=text:gsub("%.",",") end
+            return text.." %"
+        end
+        return "+"..ns.Format.Number(value).." XP"
+    end
     local function segment(texture,value)
         texture:ClearAllPoints();texture:SetPoint("TOPLEFT",track,"TOPLEFT",barWidth*value.start,0)
         texture:SetWidth(math.max(0.01,barWidth*value.size));texture:SetShown(value.size>0)
@@ -62,8 +73,8 @@ function ns.XPView.Create(name,preview)
         restedEdge:ClearAllPoints();restedEdge:SetPoint("TOPLEFT",track,"TOPLEFT",barWidth*segments.rested.start,0);restedEdge:SetShown(segments.rested.size>0)
         numbers:SetText(data.atCap and L.MAX_LEVEL_HINT or ns.Format.Number(data.current).." / "..ns.Format.Number(data.maximum).." XP")
         currentLabel:SetText(preview and L.PREVIEW or L.CURRENT_XP)
-        questLabel:SetText(data.atCap and ""or L.QUEST_XP.." +"..ns.Format.Number(data.questXP))
-        rest:SetText(data.atCap and ""or L.RESTED.." +"..ns.Format.Number(data.rested))
+        questLabel:SetText(data.atCap and ""or L.QUEST_XP.." "..displayText(data.questXP,ns.db.xp.questDisplay,data.maximum))
+        rest:SetText(data.atCap and ""or L.RESTED.." "..displayText(data.rested,ns.db.xp.restedDisplay,data.maximum))
         rate:SetText("XP/h: |cffcbdad6"..ns.Format.Number(data.perHour).."|r")
         earned:SetText((data.measurementReset and L.GAIN_RESET or L.GAIN_SHORT)..": |cffcbdad6"..ns.Format.Number(data.earned).." XP|r")
         eta:SetText(L.NEXT_LEVEL..": |cffcbdad6"..ns.Format.Duration(data.eta).."|r")

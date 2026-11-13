@@ -27,10 +27,20 @@ local function scale(parent,moduleName,label,y)
         end)
     end
 end
+local function choice(parent,label,key,y)
+    local text=UI.Text(parent,13,T.text);text:SetPoint("TOPLEFT",24,y);text:SetText(label)
+    local value=UI.Text(parent,13,T.goldLight);value:SetPoint("TOPRIGHT",-65,y)
+    refreshers[#refreshers+1]=function() value:SetText(ns.db.xp[key]=="percent" and ns.L.DISPLAY_PERCENT or ns.L.DISPLAY_XP) end
+    local button=UI.Button(parent,">",26);button:SetSize(25,24);button:SetPoint("TOPRIGHT",-25,y+5)
+    button:SetScript("OnClick",function()
+        ns.db.xp[key]=ns.db.xp[key]=="xp" and "percent" or "xp"
+        ns.Refresh();ns.Options.Refresh()
+    end)
+end
 local function build()
     local L=ns.L
     refreshers={}
-    frame=UI.CreatePanel(UIParent,"ForeverUI_Options");frame:SetSize(430,510);frame:SetPoint("CENTER")
+    frame=UI.CreatePanel(UIParent,"ForeverUI_Options");frame:SetSize(430,570);frame:SetPoint("CENTER")
     frame:SetFrameStrata("DIALOG");frame:SetMovable(true);frame:EnableMouse(true);frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart",function(self) if not InCombatLockdown() then self:StartMoving() end end)
     frame:SetScript("OnDragStop",function(self) self:StopMovingOrSizing() end)
@@ -53,8 +63,10 @@ local function build()
             ns.Refresh();ns.Options.Refresh()
         end)
     end
-    local threshold=UI.Text(frame,12,T.text);threshold:SetPoint("TOPLEFT",24,-321);threshold:SetText(L.AMMO_WARNING)
-    local input=CreateFrame("EditBox",nil,frame,"InputBoxTemplate");input:SetSize(75,24);input:SetPoint("TOPRIGHT",-28,-313)
+    choice(frame,L.QUEST_DISPLAY,"questDisplay",-321)
+    choice(frame,L.RESTED_DISPLAY,"restedDisplay",-354)
+    local threshold=UI.Text(frame,12,T.text);threshold:SetPoint("TOPLEFT",24,-393);threshold:SetText(L.AMMO_WARNING)
+    local input=CreateFrame("EditBox",nil,frame,"InputBoxTemplate");input:SetSize(75,24);input:SetPoint("TOPRIGHT",-28,-385)
     input:SetAutoFocus(false);input:SetNumeric(true);input:SetMaxLetters(6)
     refreshers[#refreshers+1]=function()if not input:HasFocus() then input:SetText(ns.db.hunter.ammoWarning) end end
     input:SetScript("OnEnterPressed",function(self)
@@ -72,7 +84,7 @@ local function build()
         ns.db.hunter.position=fresh.hunter.position;ns.db.xp.position=fresh.xp.position
         ns.Refresh()
     end)
-    local hint=UI.Text(frame,11,T.muted);hint:SetPoint("BOTTOMLEFT",24,64);hint:SetText(L.MOVE_HINT)
+    local hint=UI.Text(frame,11,T.muted);hint:SetPoint("BOTTOMLEFT",24,64);hint:SetText(IsMacClient and IsMacClient() and L.MOVE_HINT_MAC or L.MOVE_HINT)
     local note=UI.Text(frame,11,T.muted);note:SetPoint("BOTTOMLEFT",24,22);note:SetWidth(380);note:SetText(L.ALPHA_NOTE)
     frame:Hide()
 end

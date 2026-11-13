@@ -20,7 +20,7 @@ Den Ordner `ForeverUI` nach `Interface/AddOns/` im WoW-Forever-Client kopieren. 
 
 - `/fui` öffnet die Einstellungen.
 - `/fui preview` schaltet eine ausdrücklich als Beispieldaten gekennzeichnete Vorschau um.
-- Positionen zum Verschieben entsperren und die jeweilige Anzeige mit Alt ziehen.
+- Positionen zum Verschieben entsperren und die jeweilige Anzeige mit Alt beziehungsweise Option ziehen.
 - Linksklick auf den Fütterbutton verwendet das gewählte Futter; Rechtsklick wählt anderes geeignetes Futter.
 
 Die Blizzard-XP-Leiste bleibt erhalten. Ein Maximallevel-Schalter steuert die zusätzliche XP-Anzeige. Auto-Quest und Level-Rennen gehören nicht zu dieser ersten Version. Quest-Vorschau-XP werden erst bei tatsächlicher Belohnung zu verdienten Sitzungs-XP.

@@ -71,3 +71,16 @@ test("corrupted XP widths cannot create unusable panels",function()
     assert(load({xp={width=0}}).xp.width==620)
     assert(load({xp={width=math.huge}}).xp.width==620)
 end)
+
+
+test("quest and rested XP display modes default independently to XP",function()
+    local c=load(nil)
+    assert(c.xp.questDisplay=="xp" and c.xp.restedDisplay=="xp")
+    c=load({xp={questDisplay="percent",restedDisplay="xp"}})
+    assert(c.xp.questDisplay=="percent" and c.xp.restedDisplay=="xp")
+end)
+
+test("invalid XP display modes safely default to XP",function()
+    local c=load({xp={questDisplay="broken",restedDisplay=false}})
+    assert(c.xp.questDisplay=="xp" and c.xp.restedDisplay=="xp")
+end)

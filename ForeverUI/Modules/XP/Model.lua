@@ -120,3 +120,9 @@ function Q.Collect(provider,ignored)
     end
     return Q.Total(entries,allLoaded and found==expected)
 end
+
+function M.DisplayAmount(amount,maximum,mode)
+    if not finite(amount) then return nil end
+    if mode=="percent" and finite(maximum) and maximum>0 then return amount/maximum*100 end
+    return amount
+end

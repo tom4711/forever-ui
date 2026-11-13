@@ -119,3 +119,10 @@ test("max level and unreadable snapshots cannot divide by a missing XP maximum",
     r=m.Segments({reliable=false})
     assert(r.current.size==0 and r.quest.size==0 and r.rested.size==0)
 end)
+
+
+test("XP labels retain absolute values or show independent percent amounts",function()
+    assert(ns.XPModel.DisplayAmount(6200,25200,"xp")==6200)
+    assert(ns.XPModel.DisplayAmount(6200,25200,"percent")==6200/25200*100)
+    assert(ns.XPModel.DisplayAmount(30000,25200,"percent")>100)
+end)

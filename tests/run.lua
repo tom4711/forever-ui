@@ -13,7 +13,7 @@ function loadAddon(path, namespace)
     local chunk = loadfile("ForeverUI/" .. path)
     if chunk then chunk("ForeverUI", namespace) end
 end
-for _, path in ipairs({"tests/settings_test.lua", "tests/read_test.lua", "tests/hunter_test.lua", "tests/combat_queue_test.lua", "tests/food_test.lua", "tests/xp_test.lua", "tests/quest_xp_test.lua"}) do
+for _, path in ipairs({"tests/settings_test.lua", "tests/read_test.lua", "tests/hunter_test.lua", "tests/hunter_actions_test.lua", "tests/combat_queue_test.lua", "tests/food_test.lua", "tests/xp_test.lua", "tests/quest_xp_test.lua"}) do
     dofile(path)
 end
 print(string.format("%d tests, %d failures", total, failed))

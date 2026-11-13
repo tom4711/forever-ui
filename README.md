@@ -4,7 +4,7 @@ Ein eigenständiges WoW-Forever-Addon mit Hunter- und XP-Modul in einer gemeinsa
 
 ## Stand
 
-**0.1.3-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
+**0.1.5-alpha** enthält die erste Implementierung. Die Logik ist offline getestet; die vollständige Prüfung im Spiel steht aus. Die aktuelle Liste geprüfter und offener Fälle steht in [docs/testing.md](docs/testing.md).
 
 ## Funktionen
 
@@ -20,7 +20,9 @@ Den Ordner `ForeverUI` nach `Interface/AddOns/` im WoW-Forever-Client kopieren. 
 
 - `/fui` öffnet die Einstellungen.
 - `/fui preview` schaltet eine ausdrücklich als Beispieldaten gekennzeichnete Vorschau um.
-- Positionen zum Verschieben entsperren und die jeweilige Anzeige mit Alt beziehungsweise Option ziehen.
+- Positionen zum Verschieben entsperren und die jeweilige Anzeige mit Alt (Windows) beziehungsweise Option (macOS) ziehen.
+- Quest- und Ruhebonus unabhängig in XP oder Prozent der für diese Stufe benötigten XP anzeigen.
+- Als Jäger erlernte Aspekte direkt anklicken; Mend Pet und Revive Pet erscheinen als eigene manuelle Pet-Aktionen.
 - Linksklick auf den Fütterbutton verwendet das gewählte Futter; Rechtsklick wählt anderes geeignetes Futter.
 
 Die Blizzard-XP-Leiste bleibt erhalten. Ein Maximallevel-Schalter steuert die zusätzliche XP-Anzeige. Auto-Quest und Level-Rennen gehören nicht zu dieser ersten Version. Quest-Vorschau-XP werden erst bei tatsächlicher Belohnung zu verdienten Sitzungs-XP.

@@ -107,6 +107,7 @@ function UI.MakeMovable(frame,moduleName)
         local point,_,relativePoint,x,y=self:GetPoint()
         ns.db[moduleName].position={point=point,relativePoint=relativePoint,x=x,y=y}
         if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(false)end
+        if moduleName=="hunter" and ns.HunterActions then ns.HunterActions.Relayout()end
     end)
 end
 function UI.Place(frame,moduleName)

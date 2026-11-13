@@ -19,7 +19,7 @@ Das Fragezeichen wird durch eine klare, zur Gold-Petrol-Oberfläche passende XP-
 
 ## Jäger-Steuerung
 
-Jede erlernte Aspekt erhält eine eigene SecureActionButton mit direkter Spell-ID und WoW-Highlight. Zusätzlich gibt es feste Schaltflächen für Mend Pet und Revive Pet, die den Begleiter als Ziel verwenden, soweit der jeweilige Zauber es verlangt. Die Aktionen beginnen ausschließlich durch einen echten Klick. Die Schaltflächen werden vor dem Kampf konfiguriert und bleiben während des Kampfes stabil; Aktualisierungen warten bis zum Kampfende. Sie werden nicht dynamisch im Kampf versteckt oder umkonfiguriert.
+Jede erlernte Aspekt erhält eine eigene SecureActionButton mit direkter Spell-ID und WoW-Highlight. Zusätzlich gibt es feste Schaltflächen für Mend Pet und Revive Pet. Sichere Makroaktionen beschränken Mend Pet auf einen lebenden Begleiter und Revive Pet auf einen toten Begleiter. Die Aktionen beginnen ausschließlich durch einen echten Klick. Die Schaltflächen werden vor dem Kampf konfiguriert und bleiben während des Kampfes stabil; Aktualisierungen warten bis zum Kampfende. Sie werden nicht dynamisch im Kampf versteckt oder umkonfiguriert.
 
 Die Funktion gilt nur für Jäger und erlernte Zauber. Nicht verfügbare Zauber werden nach Spellbook-/Spell-Änderungsereignissen außerhalb des Kampfes ergänzt. Futterwahl und Fütterung behalten ihre bestehende Bedienung.
 

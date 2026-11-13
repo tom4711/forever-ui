@@ -91,3 +91,8 @@ Der Nutzer hat den vorgeschlagenen v0.1-Umfang bestätigt. Die gezeigte Browserv
 ## Erweiterung nach dem ersten Spieltest
 
 Der Nutzer hat die Vorschau fertiger, noch nicht abgegebener Quest-XP ausdrücklich ergänzt. Dafür werden aktuelle XP türkis, Quest-XP gold und der Erholungsbonus blau als getrennte, bis zur nächsten Levelgrenze begrenzte Segmente dargestellt. Ungekürzte Mengen stehen numerisch daneben. Die Anzeige wird kompakter und nutzt die zusätzliche Breite; ihre Breite bleibt unabhängig von Höhe und Schriftgröße einstellbar.
+
+
+## Folgefunktionen nach Alpha 0.1.3
+
+Auf Nutzerwunsch werden Quest- und Erholungswerte unabhängig in XP oder Prozent der nötigen XP für die aktuelle Stufe gezeigt. Auf macOS nennt der Verschiebehinweis Option. Jäger erhalten separate SecureActionButtons für erlernte Aspekte und manuelle Pet-Zauber. Alpha 0.1.4 muss im Spiel auf Zauberwahl, Pet-Ziel, Kampfwechsel und Leistenposition geprüft werden.

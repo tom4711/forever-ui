@@ -56,3 +56,8 @@ Auf ausdrücklichen Nutzerwunsch ergänzt: fertige Quest-XP zusätzlich zur aktu
 Das Layout nutzt den Balken über fast die volle Breite, die XP-Zahlen im Kopfbereich und eine gemeinsame Statistikzeile. Höhe 132 statt 145 UI-Einheiten, Balkenhöhe 23 statt 16. Breite und Skalierung bleiben getrennt. Die reale Farbzuordnung und Questbelohnungen müssen nach dem Neuladen im Client geprüft werden.
 
 59 Logiktests bestehen, einschließlich disjunkter Segmente, Begrenzung, Quest-ID statt Logindex, doppelter/fehlender Daten und bereits abgegebener Quests. Es wird keine zusätzliche Laufzeitdatei benötigt; die Erweiterung liegt in den vorhandenen XP-Modell-/Controller-Dateien und kann per `/reload` geladen werden.
+
+
+## XP-Einheiten und Hunter-Klickaktionen (Alpha 0.1.5)
+
+67 Offline-Tests bestehen. Hinzugekommen sind unabhängige SavedVariables-Auswahl für Quest- und Ruhebonus in XP/Prozent sowie Hunter-Modelltests für höchste erlernte Aspektränge und Pet-Zustände. Sichere Klickbuttons für Aspekte, Mend Pet und Revive Pet werden außerhalb des Kampfes konfiguriert. Das tatsächliche Zauberwirken, Zielverhalten und Layout im Forever-Client müssen im Spiel bestätigt werden.

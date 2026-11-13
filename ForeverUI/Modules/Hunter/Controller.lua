@@ -1,5 +1,6 @@
 local _,ns=...
 local R,M=ns.Read,ns.HunterModel
+local A=ns.HunterActionModel
 ns.Hunter={}
 local view,events,isHunter,previousLow
 local ammoCount,ammoIcon
@@ -45,6 +46,13 @@ function ns.Hunter.Refresh()
     ns.UI.Place(view.frame,"hunter");view.frame:SetShown(visible)
     if visible then updateAmmo();update()end
     if ns.HunterFeed then ns.HunterFeed.Refresh(ns.db.hunter)end
+    if ns.HunterActions then
+        local learned={}
+        for _,group in ipairs(A.SpellIDs)do
+            for _,id in ipairs(group.spells)do learned[id]=boolean(IsPlayerSpell,id)==true or boolean(IsSpellKnown,id)==true end
+        end
+        ns.HunterActions.Refresh(ns.db.hunter,A.Aspects(learned),view.frame,ns.Preview.IsEnabled())
+    end
 end
 function ns.Hunter.GetFrame()return view and view.frame end
 function ns.Hunter.Init()
@@ -54,10 +62,10 @@ function ns.Hunter.Init()
     view=ns.HunterView.Create("ForeverUI_Hunter",false)
     if C_Item and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(8149)end
     events=CreateFrame("Frame")
-    for _,event in ipairs({"PLAYER_TARGET_CHANGED","BAG_UPDATE_DELAYED","PLAYER_EQUIPMENT_CHANGED","UNIT_PET","UNIT_FLAGS","PLAYER_ENTERING_WORLD","GET_ITEM_INFO_RECEIVED"})do events:RegisterEvent(event)end
+    for _,event in ipairs({"PLAYER_TARGET_CHANGED","BAG_UPDATE_DELAYED","PLAYER_EQUIPMENT_CHANGED","UNIT_PET","UNIT_FLAGS","PLAYER_ENTERING_WORLD","GET_ITEM_INFO_RECEIVED","SPELLS_CHANGED","LEARNED_SPELL_IN_TAB"})do events:RegisterEvent(event)end
     events:SetScript("OnEvent",function(_,event)
         if event=="BAG_UPDATE_DELAYED" or event=="PLAYER_EQUIPMENT_CHANGED" or event=="PLAYER_ENTERING_WORLD" then updateAmmo()end
-        update()
+        if event=="SPELLS_CHANGED" or event=="LEARNED_SPELL_IN_TAB" then ns.Hunter.Refresh() else update() end
     end)
     local elapsed=0
     events:SetScript("OnUpdate",function(_,dt)

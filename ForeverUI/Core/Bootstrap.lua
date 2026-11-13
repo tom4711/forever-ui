@@ -7,6 +7,7 @@ function ns.Refresh()
     ns.Preview.Refresh()
     if ns.Hunter then ns.Hunter.Refresh()end
     if ns.XP then ns.XP.Refresh()end
+    if ns.HunterActions and ns.Preview.IsEnabled then ns.HunterActions.SetPreview(ns.Preview.IsEnabled())end
 end
 local events=CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")

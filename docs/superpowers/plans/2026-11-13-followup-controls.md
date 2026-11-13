@@ -46,15 +46,15 @@
 
 **Files:** Modify `ForeverUI/ForeverUI.toc`, `ForeverUI/Modules/Hunter/View.lua`, `ForeverUI/Modules/Hunter/Controller.lua`, `ForeverUI/Modules/Hunter/Model.lua` as needed, `ForeverUI/Core/Bootstrap.lua`, locales, settings/package version, `tests/run.lua`, and focused Hunter tests.
 
-**Interfaces:** The Hunter controller supplies the set of learned supported aspect spell IDs to the view. The view creates fixed `SecureActionButtonTemplate` controls for each learned aspect, plus Mend Pet (spell 136) and Revive Pet (spell 982); spell actions are invoked only by button clicks. Use `CombatQueue.Request` for out-of-combat setup and refresh.
+**Interfaces:** The Hunter controller supplies the set of learned supported aspect spell IDs to the view. The view creates fixed `SecureActionButtonTemplate` controls for each learned aspect, plus Mend Pet and Revive Pet secure macro clicks with `@pet,exists,nodead` and `@pet,dead` conditions, respectively; actions are invoked only by button clicks. Use `CombatQueue.Request` for out-of-combat setup and refresh.
 
-- [ ] Add model tests for deduplicated supported learned spells and omission of unknown spell IDs.
-- [ ] Add tests for pet action availability states: Mend requires a living pet; Revive requires a dead pet; neither is available when no pet exists.
-- [ ] Register relevant pet and spell learning events; refresh learned spells outside combat and retain the last configured set during combat.
-- [ ] Create fixed secure spell buttons with localized tooltips and original game spell icons; keep their visibility stable through combat, reflecting availability with non-protected visual cues.
-- [ ] Integrate the buttons into the Hunter controls without moving the independent feeder or settings control; keep Preview buttons nonfunctional.
-- [ ] Bump alpha version, update testing and design notes, build the ZIP, and verify its declared file list.
-- [ ] Run the full Lua 5.1 test suite, syntax-check all TOC Lua files, and review the diff for protected actions, privacy, and package contents.
+- [x] Add model tests for deduplicated supported learned spells and omission of unknown spell IDs.
+- [x] Add tests for pet action availability states: Mend requires a living pet; Revive requires a dead pet; neither is available when no pet exists.
+- [x] Register relevant pet and spell learning events; refresh learned spells outside combat and retain the last configured set during combat.
+- [x] Create fixed secure spell buttons with localized tooltips and original game spell icons; keep their visibility stable through combat, reflecting availability with non-protected visual cues.
+- [x] Integrate the buttons into the Hunter controls without moving the independent feeder or settings control; keep Preview buttons nonfunctional.
+- [x] Bump alpha version, update testing and design notes, build the ZIP, and verify its declared file list.
+- [x] Run the full Lua 5.1 test suite, syntax-check all TOC Lua files, and review the diff for protected actions, privacy, and package contents.
 
 ## Manual Client Checks
 

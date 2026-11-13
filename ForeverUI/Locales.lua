@@ -63,4 +63,5 @@ en.PET_HINT_missing="Call your pet to see its mood.";en.PET_HINT_dead="Revive yo
 en.PET_HINT_unhappy="Your pet is unhappy. Suitable food improves its mood.";en.PET_HINT_content="Your pet is content. Suitable food can improve its mood.";en.PET_HINT_happy="Your pet is happy."
 de.PET_HINT_missing="Rufe deinen Begleiter, um seine Stimmung zu sehen.";de.PET_HINT_dead="Belebe deinen Begleiter wieder.";de.PET_HINT_unknown="Die Stimmung kann gerade nicht ausgelesen werden."
 de.PET_HINT_unhappy="Dein Begleiter ist unglücklich. Geeignetes Futter verbessert seine Stimmung.";de.PET_HINT_content="Dein Begleiter ist zufrieden. Geeignetes Futter kann seine Stimmung verbessern.";de.PET_HINT_happy="Dein Begleiter ist glücklich."
+en.CLOSE="Close";de.CLOSE="Schließen"
 ns.L=setmetatable(GetLocale() == "deDE" and de or {}, {__index=en})

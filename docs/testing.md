@@ -44,3 +44,7 @@ Das anschließende Feedback führte zu schlichten kleinen Settings-Controls und 
 48 Logiktests bestehen. Die neue Anordnung, die Breitenbedienung und das Verhalten direkt am Bildschirmrand müssen nach dem Aktualisieren noch im Client bestätigt werden. Kampfwechsel, Instanzreichweiten, XP-Ereignisse beim echten Levelaufstieg, neue Anmeldung versus Reload und nicht verfügbare Charakterklassen/Maximallevel sind weiterhin offene Abnahmefälle. Eine vollständige Client-Build-ID ist noch nicht protokolliert.
 
 Die Alpha 0.1.1 wurde nach der Korrektur aktualisiert. Die beiden wichtigen Reviewbefunde sind behoben und durch Regressionstests abgesichert. Der im Umfang vorgesehene Begleiter-Tooltip wurde ergänzt. Für die kleinen Controls wird die vorhandene Client-Checkbox-Textur statt eines möglicherweise fehlenden Häkchen-Schriftzeichens verwendet.
+
+## Schließen-Schaltfläche
+
+In Alpha 0.1.2 wurde die rote Fläche mit kleinem Schriftzeichen durch ein gleichmäßig gezeichnetes goldenes Kreuz auf demselben Petrol-/Gold-Control wie die übrigen Settings-Buttons ersetzt. Es gibt einen lokalisierten Schließen-Tooltip. Die verwendeten Line-Anker wurden mit der Forever-API-Dokumentation abgeglichen; die endgültige optische Beurteilung erfolgt nach dem UI-Neuladen im Spiel.

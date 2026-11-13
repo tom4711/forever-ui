@@ -81,9 +81,15 @@ function UI.Button(parent,text,width)
     return button
 end
 function UI.CloseButton(parent,callback)
-    local button=UI.Button(parent,"×",26)
+    local button=UI.Button(parent,"",26)
     button:SetSize(26,26);button:SetPoint("TOPRIGHT",-10,-10)
-    local bg=UI.Rect(button,{0.4,0.065,0.025,1},"BACKGROUND");bg:SetPoint("TOPLEFT",6,-6);bg:SetPoint("BOTTOMRIGHT",-6,6)
+    local first=button:CreateLine(nil,"OVERLAY")
+    first:SetColorTexture(unpack(T.goldLight));first:SetThickness(1.5)
+    first:SetStartPoint("TOPLEFT",button,8,-8);first:SetEndPoint("BOTTOMRIGHT",button,-8,8)
+    local second=button:CreateLine(nil,"OVERLAY")
+    second:SetColorTexture(unpack(T.goldLight));second:SetThickness(1.5)
+    second:SetStartPoint("BOTTOMLEFT",button,8,8);second:SetEndPoint("TOPRIGHT",button,-8,-8)
+    UI.Tooltip(button,ns.L.CLOSE)
     button:SetScript("OnClick",callback)
     return button
 end

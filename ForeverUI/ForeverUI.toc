@@ -2,7 +2,7 @@
 ## Title: Forever UI
 ## Notes: Hunter and XP tools in an ornate gold and petrol style. Alpha build.
 ## Author: tom4711
-## Version: 0.1.6-alpha
+## Version: 0.1.7-alpha
 ## SavedVariablesPerCharacter: ForeverUICharDB
 
 Locales.lua

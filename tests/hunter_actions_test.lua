@@ -50,3 +50,9 @@ test("action positions use scaled hunter coordinates on a separate row",function
     local feed=ns.FoodModel.FeedPosition(g)
     assert(feed.x==332 and feed.y==334)
 end)
+
+
+test("spell refresh listeners use Forever event names only",function()
+    local events=model().SpellEvents
+    assert(#events==2 and events[1]=="SPELLS_CHANGED" and events[2]=="LEARNED_SPELL_IN_SKILL_LINE")
+end)

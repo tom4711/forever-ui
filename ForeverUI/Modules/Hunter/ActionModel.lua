@@ -46,4 +46,5 @@ end
 function M.PetAvailability(exists,dead)
     return {mend=exists==true and dead==false,revive=exists==true and dead==true}
 end
+M.SpellEvents={"SPELLS_CHANGED","LEARNED_SPELL_IN_SKILL_LINE"}
 M.PetSpells={mend={136,3111,3661,3662,13542,13543,13544},revive={982}}

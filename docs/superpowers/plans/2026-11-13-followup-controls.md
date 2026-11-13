@@ -63,3 +63,7 @@ After installation, use `/reload`; confirm XP/percent settings persist independe
 ## Zusatzkorrektur nach Nutzerprüfung
 
 Falls `PLAYER_ENTERING_WORLD` beim ersten Aufruf verspätet eintrifft, bleibt das normale XP-Frame nicht mehr bis dahin leer: `XP.Init` startet es sofort mit einem aktuellen Snapshot. Ein Controller-Test deckt den verzögerten Event-Fall ab.
+
+## Startkorrektur nach Forever-Client-Test
+
+`LEARNED_SPELL_IN_TAB` ist auf Forever unbekannt und unterbrach beim Login den restlichen `PLAYER_LOGIN`-Handler, sodass XP und Hunter nicht initialisiert wurden. Die Spell-Refresh-Liste verwendet jetzt `LEARNED_SPELL_IN_SKILL_LINE` und `SPELLS_CHANGED`; ein Regressionstest pinnt beide Eventnamen.

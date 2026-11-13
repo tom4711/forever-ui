@@ -98,4 +98,4 @@ Der Nutzer hat die Vorschau fertiger, noch nicht abgegebener Quest-XP ausdrückl
 Auf Nutzerwunsch werden Quest- und Erholungswerte unabhängig in XP oder Prozent der nötigen XP für die aktuelle Stufe gezeigt. Auf macOS nennt der Verschiebehinweis Option. Jäger erhalten separate SecureActionButtons für erlernte Aspekte und manuelle Pet-Zauber. Alpha 0.1.4 muss im Spiel auf Zauberwahl, Pet-Ziel, Kampfwechsel und Leistenposition geprüft werden.
 
 
-Die Folgefunktionen sind als Alpha 0.1.6 umgesetzt; siehe die separate Folgefunktionsspezifikation und den Umsetzungsplan.
+Die Folgefunktionen sind als Alpha 0.1.7 umgesetzt; siehe die separate Folgefunktionsspezifikation und den Umsetzungsplan.

@@ -14,6 +14,15 @@ Die genaue Gestaltung und die technische Umsetzung werden noch ausgearbeitet. Ob
 
 Projektstart. Dieses Repository enthält bisher die Projektbeschreibung und die Lizenzierung. Es gibt noch keinen installierbaren Addon-Code und keine im Spiel geprüfte Version.
 
+## Erste Umsetzung
+
+Gewählt ist ein eigenständiges Forever UI mit Hunter- und XP-Modul. Die erste Version wird mit einer gemeinsamen Designvorschau begonnen; anschließend werden Hunter-Kernfunktionen und eine XP-Leiste mit Sitzungsstatistik umgesetzt.
+
+- [Zielbild und vorgeschlagener Umfang von v0.1](docs/superpowers/specs/2026-11-13-first-version-design.md)
+- [Umsetzungsplan mit Prüfschritten](docs/superpowers/plans/2026-11-13-first-version.md)
+
+Beide Dokumente sind Entwürfe zur Prüfung. Die Implementierung hat noch nicht begonnen.
+
 ## Nutzung und Mitarbeit
 
 Das Repository ist öffentlich, damit andere die Arbeit nutzen, ändern und weitergeben können. Es besteht kein fester Veröffentlichungsplan für CurseForge oder andere Addon-Portale. Beiträge sind willkommen.

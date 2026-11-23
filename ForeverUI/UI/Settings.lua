@@ -45,7 +45,7 @@ local function opacity(parent, config, y, apply)
     track:SetPoint("LEFT", 4, 0)
     track:SetPoint("RIGHT", -4, 0)
     track:SetHeight(4)
-    local thumb = UI.Rect(slider, T.gold, "OVERLAY")
+    local thumb = UI.Rect(slider, "edge", "OVERLAY")
     thumb:SetSize(10, 14)
     slider:SetThumbTexture(thumb)
 
@@ -265,7 +265,7 @@ local function scrollPage(parent)
     local track = UI.Rect(bar, T.inset, "BACKGROUND")
     track:SetPoint("TOPLEFT", 3, -3)
     track:SetPoint("BOTTOMRIGHT", -3, 3)
-    local thumb = UI.Rect(bar, T.gold, "OVERLAY")
+    local thumb = UI.Rect(bar, "edge", "OVERLAY")
     thumb:SetSize(8, 42)
     bar:SetThumbTexture(thumb)
     bar:SetValueStep(1)
@@ -376,17 +376,23 @@ local function build()
     scale(general, "party", L.PARTY_FRAMES .. " · " .. L.SCALE, -732)
     general:SetHeight(772)
 
-    heading(appearance, L.ACTION_BARS, -4)
-    check(appearance, L.STYLE_ACTION_BARS, -32, function() return ns.db.actionBars.enabled end,
+    check(appearance, L.CLASS_ACCENT, -6, function() return ns.db.classAccent end,
+        function(value)
+            ns.db.classAccent = value
+            T.SetClassAccent(value)
+        end)
+    divider(appearance, -42)
+    heading(appearance, L.ACTION_BARS, -56)
+    check(appearance, L.STYLE_ACTION_BARS, -84, function() return ns.db.actionBars.enabled end,
         function(value) ns.db.actionBars.enabled = value end)
-    opacity(appearance, ns.db.actionBars, -70, ns.ActionBars.Refresh)
+    opacity(appearance, ns.db.actionBars, -122, ns.ActionBars.Refresh)
 
-    divider(appearance, -128)
-    heading(appearance, L.INVENTORY, -146)
-    check(appearance, L.STYLE_INVENTORY, -174, function() return ns.db.inventory.enabled end,
+    divider(appearance, -180)
+    heading(appearance, L.INVENTORY, -198)
+    check(appearance, L.STYLE_INVENTORY, -226, function() return ns.db.inventory.enabled end,
         function(value) ns.db.inventory.enabled = value end)
-    opacity(appearance, ns.db.inventory, -212, ns.Inventory.Refresh)
-    appearance:SetHeight(274)
+    opacity(appearance, ns.db.inventory, -264, ns.Inventory.Refresh)
+    appearance:SetHeight(326)
 
     local preview=UI.Button(frame,L.PREVIEW_SHOW,175);preview:SetPoint("BOTTOMLEFT",24,95)
     preview:SetScript("OnClick",function() ns.Preview.SetEnabled(not ns.Preview.IsEnabled()) end)

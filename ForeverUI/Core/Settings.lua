@@ -92,6 +92,7 @@ function ns.Settings.Load(saved)
     result.party.replaceBlizzard = boolean(party.replaceBlizzard, false)
     result.companion = module(saved.companion, -284, {point="TOPLEFT",relativePoint="TOPLEFT",x=28,y=-284})
     result.castBar = module(saved.castBar, 72)
+    result.classAccent = boolean(saved.classAccent, false)
     result.actionBars = appearance(saved.actionBars, 0.25)
     result.inventory = appearance(saved.inventory, 0.92)
     result.bindings = ns.Bindings and ns.Bindings.Load(saved.bindings) or {}

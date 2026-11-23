@@ -7,11 +7,8 @@ function ns.PaladinView.Create(name, preview)
     local L = ns.L
     local root = UI.CreatePanel(UIParent, name)
     root:SetSize(298, 31)
-    local title = UI.Text(root, 13, T.goldLight)
-    title:SetPoint("LEFT", 12, 0)
-    title:SetText(L.PALADIN)
-    local equipment = UI.Text(root, 10, T.muted)
-    equipment:SetPoint("RIGHT", -12, 0)
+    local equipment = UI.Text(root, 11, T.text)
+    equipment:SetPoint("LEFT", 12, 0)
 
     local auras = UI.CreateClassGroup(root, "paladin", "auraGroup", L.AURAS)
     local blessings = UI.CreateClassGroup(root, "paladin", "blessingGroup", L.BLESSINGS)

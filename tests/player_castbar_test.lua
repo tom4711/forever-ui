@@ -44,10 +44,15 @@ local function withPlayer(body)
     local pet, stockCast = widget(stock), widget(stock)
     pet:SetMouseClickEnabled(true)
     local events, data, preview, inCombat
+    local wallet, displayedMoney = 123456
+    local registered = {}
     local ns = {
         db = {player = {enabled = true}},
         PlayerView = {Create = function()
-            return {frame = {}, Render = function(update) data = update end}
+            return {
+                frame = {}, Render = function(update) data = update end,
+                RenderMoney = function(amount) displayedMoney = amount end,
+            }
         end},
         Preview = {IsEnabled = function() return preview == true end},
         UI = {Place = noop},
@@ -57,7 +62,12 @@ local function withPlayer(body)
         PetFrame = pet,
         PlayerCastingBarFrame = stockCast,
         InCombatLockdown = function() return inCombat == true end,
-        CreateFrame = function() events = widget(); return events end,
+        GetMoney = function() return wallet end,
+        CreateFrame = function()
+            events = widget()
+            function events:RegisterEvent(event) registered[event] = true end
+            return events
+        end,
     }, function()
         loadAddon("Core/Read.lua", ns)
         loadAddon("Modules/Player/Controller.lua", ns)
@@ -67,6 +77,10 @@ local function withPlayer(body)
         end, function(value)
             inCombat = value
             if not value then events.scripts.OnEvent(events, "PLAYER_REGEN_ENABLED") end
+        end, function() return displayedMoney end, function(value)
+            wallet = value
+            assert(registered.PLAYER_MONEY, "player frame must listen for money changes")
+            events.scripts.OnEvent(events, "PLAYER_MONEY")
         end)
     end)
 end
@@ -110,6 +124,20 @@ test("opting out leaves stock player visibility under native or external ownersh
         stock:Hide()
         player.SetReplacementEnabled(false)
         assert(not stock:IsShown(), "an externally hidden PlayerFrame must stay hidden")
+    end)
+end)
+
+test("player money updates at login and on wallet changes", function()
+    withPlayer(function(player, _, _, _, data, _, _, money, changeMoney)
+        player.Init()
+        assert(money() == 123456, "player frame must read the character's balance on initialization")
+        local before = data()
+        changeMoney(125055)
+        assert(money() == 125055 and data() == before, "the money event should update only the balance")
+        changeMoney(0)
+        assert(money() == 0, "a zero balance is valid")
+        changeMoney(nil)
+        assert(money() == nil, "an unreadable balance should clear the display")
     end)
 end)
 

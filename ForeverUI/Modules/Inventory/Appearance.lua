@@ -19,51 +19,128 @@ local function backgroundOpacity()
     return math.min(1, math.max(0, R.Number(options and options.opacity) or 0.92))
 end
 
+local function gamepadEnabled()
+    return R.Boolean(R.Call(InputUtil and InputUtil.IsGamepadUIEnabled))
+end
+
+local function syncChrome(chrome, window)
+    local strata, level, scale, alpha = window:GetFrameStrata(), window:GetFrameLevel(), window:GetScale(), window:GetAlpha()
+    if chrome:GetFrameStrata() ~= strata then chrome:SetFrameStrata(strata) end
+    if chrome:GetFrameLevel() ~= level then chrome:SetFrameLevel(level) end
+    if chrome:GetScale() ~= scale then chrome:SetScale(scale) end
+    if chrome:GetAlpha() ~= alpha then chrome:SetAlpha(alpha) end
+end
+
+local function showChrome(skin)
+    local visible = skin.visible and skin.window:IsVisible()
+    if visible then syncChrome(skin.chrome, skin.window) end
+    skin.chrome:SetShown(not not visible)
+end
+
+local function horizontalTrim(chrome, edge, y, height, opacity)
+    local trim = UI.Rect(chrome, "edge", "BORDER", opacity)
+    trim:SetPoint(edge .. "LEFT", 0, y)
+    trim:SetPoint(edge .. "RIGHT", 0, y)
+    trim:SetHeight(height)
+end
+
+local function verticalTrim(chrome, edge)
+    local trim = UI.Rect(chrome, "edge", "BORDER")
+    trim:SetPoint("TOP" .. edge)
+    trim:SetPoint("BOTTOM" .. edge)
+    trim:SetWidth(2)
+end
+
+local function styleSlot(skin, slot)
+    local rim = skin.rims[slot]
+    if not rim then
+        -- The item icon is on BORDER. Stack counts and state overlays draw over this rim.
+        rim = slot:CreateTexture(nil, "ARTWORK", nil, -1)
+        rim:SetTexture("Interface\\Common\\WhiteIconFrame")
+        rim:SetVertexColor(T.muted[1], T.muted[2], T.muted[3], 0.72)
+        rim:SetAllPoints(slot)
+        skin.rims[slot] = rim
+    end
+    rim:SetShown(true)
+end
+
+local function styleSlots(skin)
+    local panel = skin.panel
+    if not panel then return end
+    if skin.bank then
+        local character = Enum and Enum.BankType and Enum.BankType.Character
+        if R.Call(skin.window.GetActiveBankType, skin.window) ~= character then return end
+        if panel.EnumerateValidItems then
+            for slot in panel:EnumerateValidItems() do styleSlot(skin, slot) end
+        end
+    elseif panel.EnumerateItems then
+        for _, slot in panel:EnumerateItems() do styleSlot(skin, slot) end
+    end
+end
+
 local function createSkin(frame, bank)
-    local fill = UI.Rect(frame, {T.background[1], T.background[2], T.background[3], 1}, "BACKGROUND")
-    fill:SetPoint("TOPLEFT", 2, -22)
-    fill:SetPoint("BOTTOMRIGHT", -2, 3)
+    -- Keep the backdrop out of scans of the native window and below its controls.
+    local chrome = CreateFrame("Frame", nil, frame:GetParent())
+    chrome:EnableMouse(false)
+    chrome:SetAllPoints(frame)
+    chrome:Hide()
+    local fill = UI.Rect(chrome, {0.035, 0.15, 0.17, 1}, "BACKGROUND")
+    fill:SetPoint("TOPLEFT", 0, -23)
+    fill:SetPoint("BOTTOMRIGHT")
 
-    local header = UI.Rect(frame, T.inset, "BACKGROUND")
-    header:SetPoint("TOPLEFT", 2, 0)
-    header:SetPoint("TOPRIGHT", -2, 0)
-    header:SetHeight(22)
+    local header = UI.Rect(chrome, {0.07, 0.24, 0.26, 1}, "BACKGROUND")
+    header:SetPoint("TOPLEFT")
+    header:SetPoint("TOPRIGHT")
+    header:SetHeight(23)
 
-    local trim = UI.Rect(frame, {T.gold[1], T.gold[2], T.gold[3], 0.45}, "BORDER")
-    trim:SetPoint("TOPLEFT", 5, -22)
-    trim:SetPoint("TOPRIGHT", -5, -22)
-    trim:SetHeight(1)
+    horizontalTrim(chrome, "TOP", 0, 2)
+    horizontalTrim(chrome, "BOTTOM", 0, 2)
+    verticalTrim(chrome, "LEFT")
+    verticalTrim(chrome, "RIGHT")
+    horizontalTrim(chrome, "TOP", -22, 1, 0.78)
 
     local native = {}
-    local function dim(region, factor)
-        if region then native[#native + 1] = {region = region, factor = factor} end
+    local function fade(region)
+        if region then native[#native + 1] = {region = region} end
     end
-    dim(frame.Bg, 0)
-    dim(frame.NineSlice, 0.38)
+    fade(frame.Bg)
+    fade(frame.NineSlice)
     if bank then
-        dim(frame.Background, 0)
-        dim(frame.TopTileStreaks, 0)
-        dim(frame.BankPanel and frame.BankPanel.NineSlice, 0.40)
+        fade(frame.Background)
+        fade(frame.TopTileStreaks)
+        fade(frame.BankPanel and frame.BankPanel.NineSlice)
     else
-        dim(frame.Background1Slot, 0)
+        fade(frame.Background1Slot)
     end
 
-    return {fill = fill, header = header, trim = trim, native = native,
-        title = frame.TitleContainer and frame.TitleContainer.TitleText}
+    local panel = bank and frame.BankPanel or frame
+    local skin = {window = frame, chrome = chrome, fill = fill, header = header, native = native,
+        title = frame.TitleContainer and frame.TitleContainer.TitleText, bank = bank, panel = panel, rims = {}}
+    frame:HookScript("OnShow", function() showChrome(skin) end)
+    frame:HookScript("OnHide", function() chrome:Hide() end)
+    -- A native window can be raised while open and Blizzard rescales the bags to fit the screen.
+    chrome:SetScript("OnUpdate", function() syncChrome(chrome, frame) end)
+    local slotUpdate = bank and "GenerateItemSlotsForSelectedTab" or "UpdateItemSlots"
+    if panel and panel[slotUpdate] then
+        local refreshSlots = function() if skin.visible then styleSlots(skin) end end
+        hooksecurefunc(panel, slotUpdate, function()
+            if skin.visible then ns.CombatQueue.Request(skin, refreshSlots) end
+        end)
+    end
+    return skin
 end
 
 local function updateNativeAlpha(entry, visible)
     local region = entry.region
     if visible then
         local original = region:GetAlpha()
-        local target = original * entry.factor
-        if target == original then return end
+        if original == 0 then return end
         if not entry.hooked then
             -- A later write can claim the property without changing its value.
             hooksecurefunc(region, "SetAlpha", function() entry.originalAlpha = nil end)
             entry.hooked = true
         end
-        region:SetAlpha(target)
+        region:SetAlpha(0)
         entry.appliedAlpha = region:GetAlpha()
         if entry.appliedAlpha ~= original then entry.originalAlpha = original end
     else
@@ -109,9 +186,12 @@ local function showSkin(skin, visible, opacity)
     end
     if skin.visible == visible then return end
     skin.visible = visible
-    skin.fill:SetShown(visible)
-    skin.header:SetShown(visible)
-    skin.trim:SetShown(visible)
+    showChrome(skin)
+    if visible then
+        styleSlots(skin)
+    else
+        for _, rim in pairs(skin.rims) do rim:Hide() end
+    end
     for _, entry in ipairs(skin.native) do updateNativeAlpha(entry, visible) end
     updateNativeTitle(skin, visible)
 end
@@ -140,8 +220,7 @@ end
 
 local function refreshCount()
     if not countLabel then return end
-    local gamepad = R.Boolean(R.Call(InputUtil and InputUtil.IsGamepadUIEnabled))
-    local slots = listening and not gamepad and freeBagSlots()
+    local slots = listening and not gamepadEnabled() and freeBagSlots()
     if slots then countLabel:SetText(ns.L.INVENTORY_FREE_SLOTS:format(slots)) end
     countLabel:SetShown(slots ~= nil and slots ~= false)
 end
@@ -152,7 +231,7 @@ local function refreshBank()
 
     local frame = BankFrame
     local character = Enum and Enum.BankType and Enum.BankType.Character
-    local visible = character and frame and frame.Bg and frame.Background and frame.NineSlice
+    local visible = not gamepadEnabled() and character and frame and frame.Bg and frame.Background and frame.NineSlice
         and frame:IsShown() and frame:GetAlpha() > 0
         and R.Call(frame.GetActiveBankType, frame) == character
     if visible then
@@ -171,8 +250,10 @@ local function queueBankRefresh()
 end
 
 local function onEvent(_, event, arg)
-    if event == "BAG_UPDATE_DELAYED" or event == "BAG_CONTAINER_UPDATE" or event == "INPUT_DEVICE_INTERFACE_TRANSITION" then
+    if event == "BAG_UPDATE_DELAYED" or event == "BAG_CONTAINER_UPDATE" then
         refreshCount()
+    elseif event == "INPUT_DEVICE_INTERFACE_TRANSITION" then
+        Inventory.Refresh()
     elseif event == "ADDON_LOADED" then
         if arg == "Blizzard_UIPanels_Game" then Inventory.Refresh() end
     elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" or event == "PLAYER_INTERACTION_MANAGER_FRAME_HIDE" then
@@ -213,14 +294,18 @@ local function applyAppearance()
 
     local opacity = backgroundOpacity()
     local combined = ContainerFrameCombinedBags
-    styleBag(combined, opacity)
-    if combined and bagSkins[combined] and not countLabel then
-        countLabel = UI.Text(combined, 10, T.muted)
-        countLabel:SetPoint("RIGHT", combined, "TOPLEFT", 48, -46)
-        countLabel:SetJustifyH("RIGHT")
-    end
-    for index = 1, NUM_CONTAINER_FRAMES or 0 do
-        styleBag(_G["ContainerFrame" .. index], opacity)
+    if gamepadEnabled() then
+        for _, skin in pairs(bagSkins) do showSkin(skin, false) end
+    else
+        styleBag(combined, opacity)
+        if combined and bagSkins[combined] and not countLabel then
+            countLabel = UI.Text(combined, 10, T.muted)
+            countLabel:SetPoint("RIGHT", combined, "TOPLEFT", 48, -46)
+            countLabel:SetJustifyH("RIGHT")
+        end
+        for index = 1, NUM_CONTAINER_FRAMES or 0 do
+            styleBag(_G["ContainerFrame" .. index], opacity)
+        end
     end
     refreshCount()
     queueBankRefresh()

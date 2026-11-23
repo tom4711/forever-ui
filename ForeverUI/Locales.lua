@@ -302,6 +302,9 @@ en.BIND_SHIELD_MOUSEOVER = "Shield on mouseover"; de.BIND_SHIELD_MOUSEOVER = "Sc
 en.BIND_RENEW_MOUSEOVER = "Renew on mouseover"; de.BIND_RENEW_MOUSEOVER = "Erneuerung auf Mouseover"
 
 en.TAB_APPEARANCE = "Appearance"; de.TAB_APPEARANCE = "Aussehen"
+en.CLASS_ACCENT = "Use class color for accents"; de.CLASS_ACCENT = "Klassenfarbe als Akzent"
+en.MOVE_CLASS_GROUPS_HINT = "Unlock positions. Use Alt/Option to drag this group or Shift + Alt/Option to move all class groups."
+de.MOVE_CLASS_GROUPS_HINT = "Positionen entsperren. Mit Alt/Option diese Gruppe ziehen. Mit Umschalt + Alt/Option alle Klassengruppen verschieben."
 en.ACTION_BARS = "Action bars"; de.ACTION_BARS = "Aktionsleisten"
 en.INVENTORY = "Bags and bank"; de.INVENTORY = "Taschen und Bank"
 en.STYLE_ACTION_BARS = "Style Blizzard action bars"; de.STYLE_ACTION_BARS = "Blizzard-Aktionsleisten gestalten"

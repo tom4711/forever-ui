@@ -2,7 +2,7 @@
 ## Title: Forever UI
 ## Notes: Class controls and XP tools in an ornate gold and petrol style. Alpha build.
 ## Author: tom4711
-## Version: 0.1.35-alpha
+## Version: 0.1.40-alpha
 ## SavedVariablesPerCharacter: ForeverUICharDB
 
 Locales.lua

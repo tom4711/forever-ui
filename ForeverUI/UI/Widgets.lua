@@ -1,9 +1,13 @@
 local _, ns = ...
 local UI, T = ns.UI, ns.Theme
 local deferredMoves={}
-function UI.Rect(parent, color, layer)
+function UI.Rect(parent, color, layer, opacity)
     local texture=parent:CreateTexture(nil,layer or "ARTWORK")
-    texture:SetColorTexture(unpack(color))
+    if type(color) == "string" then
+        T.BindAccent(texture, color, opacity)
+    else
+        texture:SetColorTexture(unpack(color))
+    end
     return texture
 end
 function UI.Text(parent, size, color)
@@ -15,44 +19,44 @@ function UI.Text(parent, size, color)
     label:SetJustifyH("LEFT")
     return label
 end
-local function stroke(frame, inset, color, thickness)
-    local top=UI.Rect(frame,color,"BORDER")
+local function stroke(frame, inset, color, thickness, opacity)
+    local top=UI.Rect(frame,color,"BORDER",opacity)
     top:SetPoint("TOPLEFT",inset,-inset);top:SetPoint("TOPRIGHT",-inset,-inset);top:SetHeight(thickness)
-    local bottom=UI.Rect(frame,color,"BORDER")
+    local bottom=UI.Rect(frame,color,"BORDER",opacity)
     bottom:SetPoint("BOTTOMLEFT",inset,inset);bottom:SetPoint("BOTTOMRIGHT",-inset,inset);bottom:SetHeight(thickness)
-    local left=UI.Rect(frame,color,"BORDER")
+    local left=UI.Rect(frame,color,"BORDER",opacity)
     left:SetPoint("TOPLEFT",inset,-inset);left:SetPoint("BOTTOMLEFT",inset,inset);left:SetWidth(thickness)
-    local right=UI.Rect(frame,color,"BORDER")
+    local right=UI.Rect(frame,color,"BORDER",opacity)
     right:SetPoint("TOPRIGHT",-inset,-inset);right:SetPoint("BOTTOMRIGHT",-inset,inset);right:SetWidth(thickness)
 end
 function UI.Decorate(frame)
     local bg=UI.Rect(frame,T.background,"BACKGROUND");bg:SetAllPoints()
     stroke(frame,0,{0.055,0.035,0.01,1},5)
-    stroke(frame,2,T.goldDark,3)
-    stroke(frame,3,T.gold,1)
-    stroke(frame,5,{0.47,0.32,0.11,1},1)
+    stroke(frame,2,"dark",3)
+    stroke(frame,3,"edge",1)
+    stroke(frame,5,"shadow",1)
     stroke(frame,7,{0.04,0.15,0.17,1},1)
     local sheen=UI.Rect(frame,{0.22,0.35,0.33,0.12},"BACKGROUND")
     sheen:SetPoint("TOPLEFT",9,-9);sheen:SetPoint("TOPRIGHT",-9,-9);sheen:SetHeight(3)
     for _,point in ipairs({"TOPLEFT","TOPRIGHT","BOTTOMLEFT","BOTTOMRIGHT"}) do
-        local corner=UI.Rect(frame,T.goldDark,"OVERLAY");corner:SetSize(10,10);corner:SetPoint(point,frame,point,0,0)
+        local corner=UI.Rect(frame,"dark","OVERLAY");corner:SetSize(10,10);corner:SetPoint(point,frame,point,0,0)
         corner:SetRotation(math.pi/4)
-        local jewel=UI.Rect(frame,T.gold,"OVERLAY");jewel:SetSize(5,5);jewel:SetPoint("CENTER",corner,"CENTER");jewel:SetRotation(math.pi/4)
+        local jewel=UI.Rect(frame,"edge","OVERLAY");jewel:SetSize(5,5);jewel:SetPoint("CENTER",corner,"CENTER");jewel:SetRotation(math.pi/4)
     end
 end
 function UI.DecorateControl(frame)
     local bg=UI.Rect(frame,T.inset,"BACKGROUND");bg:SetAllPoints()
-    stroke(frame,0,T.goldDark,2)
-    stroke(frame,1,T.gold,1)
+    stroke(frame,0,"dark",2)
+    stroke(frame,1,"edge",1)
     stroke(frame,3,{0.05,0.15,0.17,1},1)
 end
 function UI.DecorateActionButton(frame)
     local bg=UI.Rect(frame,T.inset,"BACKGROUND");bg:SetAllPoints()
-    stroke(frame,0,T.goldDark,2)
-    stroke(frame,2,T.gold,1)
+    stroke(frame,0,"dark",2)
+    stroke(frame,2,"edge",1)
     stroke(frame,4,{0.05,0.15,0.17,1},1)
     for _,point in ipairs({"TOPLEFT","TOPRIGHT","BOTTOMLEFT","BOTTOMRIGHT"})do
-        local stud=UI.Rect(frame,T.goldDark,"OVERLAY");stud:SetSize(3,3);stud:SetPoint(point,frame,point,point:find("LEFT") and 2 or -2,point:find("TOP") and -2 or 2)
+        local stud=UI.Rect(frame,"dark","OVERLAY");stud:SetSize(3,3);stud:SetPoint(point,frame,point,point:find("LEFT") and 2 or -2,point:find("TOP") and -2 or 2)
     end
 end
 function UI.ActionOutline(frame)
@@ -74,8 +78,8 @@ function UI.SetActionState(outline,state)
 end
 function UI.DecorateGroup(frame)
     local bg=UI.Rect(frame,{T.inset[1],T.inset[2],T.inset[3],0.72},"BACKGROUND");bg:SetAllPoints()
-    stroke(frame,0,{T.goldDark[1],T.goldDark[2],T.goldDark[3],0.88},1)
-    stroke(frame,2,{T.gold[1],T.gold[2],T.gold[3],0.42},1)
+    stroke(frame,0,"dark",1,0.88)
+    stroke(frame,2,"edge",1,0.42)
 end
 function UI.CreatePanel(parent,id)
     local frame=CreateFrame("Frame",id,parent)
@@ -125,8 +129,8 @@ function UI.CloseButton(parent,callback)
     button:SetScript("OnClick",callback)
     return button
 end
-function UI.MakeMovable(frame,moduleName)
-    frame:SetMovable(true);frame:EnableMouse(true);frame:RegisterForDrag("LeftButton")
+function UI.MakeMovable(frame,moduleName,useGroupGrip)
+    frame:SetMovable(true)
     local deferStop=false
     local function capture()
         if not frame.dragging then return false end
@@ -136,21 +140,29 @@ function UI.MakeMovable(frame,moduleName)
         if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(false)end
         return true
     end
-    local function stopMoving(self)
-        if not self.dragging then return end
+    local function stopMoving()
+        if not frame.dragging then return end
         if InCombatLockdown()then
             if not deferStop then deferStop=true;deferredMoves[frame]=function()return capture()end end
             return
         end
         if capture() and moduleName=="hunter" and ns.HunterActions then ns.HunterActions.Relayout()end
     end
-    frame:SetScript("OnDragStart",function(self)
+    local function startMoving()
         if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then
             if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(true)end
-            self:StartMoving();self.dragging=true
+            frame:StartMoving()
+            frame.dragging=true
         end
-    end)
-    frame:SetScript("OnDragStop",stopMoving)
+    end
+    if useGroupGrip then
+        frame.groupDrag = {start = startMoving, stop = stopMoving}
+    else
+        frame:EnableMouse(true)
+        frame:RegisterForDrag("LeftButton")
+        frame:SetScript("OnDragStart",startMoving)
+        frame:SetScript("OnDragStop",stopMoving)
+    end
     local events=CreateFrame("Frame")
     events:RegisterEvent("PLAYER_REGEN_DISABLED")
     events:SetScript("OnEvent",function()
@@ -164,12 +176,14 @@ function UI.MakeGroupMovable(frame,groupName,moduleName)
     grip:SetSize(14,24);grip:SetPoint("TOPLEFT",3,-17);grip:EnableMouse(true);grip:RegisterForDrag("LeftButton")
     for row=1,3 do
         for column=1,2 do
-            local dot=UI.Rect(grip,T.goldLight,"OVERLAY")
+            local dot=UI.Rect(grip,"light","OVERLAY")
             dot:SetSize(2,2);dot:SetPoint("TOPLEFT",3+(column-1)*4,-7-(row-1)*4)
         end
     end
-    UI.Tooltip(grip,ns.L.MOVE_GROUP,ns.L.MOVE_GROUP_HINT)
+    local parentDrag = frame:GetParent().groupDrag
+    UI.Tooltip(grip,ns.L.MOVE_GROUP,parentDrag and ns.L.MOVE_CLASS_GROUPS_HINT or ns.L.MOVE_GROUP_HINT)
     local deferStop=false
+    local movingParent
     local function capture()
         if not frame.dragging then return false end
         frame:StopMovingOrSizing();frame.dragging=false
@@ -205,10 +219,23 @@ function UI.MakeGroupMovable(frame,groupName,moduleName)
     end
     grip:SetScript("OnDragStart",function()
         if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then
-            frame:StartMoving();frame.dragging=true
+            movingParent = parentDrag and IsShiftKeyDown()
+            if movingParent then
+                parentDrag.start()
+            else
+                frame:StartMoving()
+                frame.dragging=true
+            end
         end
     end)
-    grip:SetScript("OnDragStop",stopMoving)
+    grip:SetScript("OnDragStop",function()
+        if movingParent then
+            parentDrag.stop()
+        else
+            stopMoving()
+        end
+        movingParent = false
+    end)
     local events=CreateFrame("Frame")
     events:RegisterEvent("PLAYER_REGEN_DISABLED")
     events:SetScript("OnEvent",function()
@@ -228,6 +255,14 @@ function UI.Place(frame,moduleName)
     frame:ClearAllPoints();frame:SetScale(config.scale)
     local p=config.position
     frame:SetPoint(p.point,UIParent,p.relativePoint,p.x,p.y)
+end
+
+function UI.CreateClassAnchor(name, moduleName, width, height)
+    local root = CreateFrame("Frame", name, UIParent)
+    root:SetSize(width, height)
+    root:SetClampedToScreen(true)
+    UI.MakeMovable(root, moduleName, true)
+    return root
 end
 
 function UI.CreateClassGroup(root, moduleName, key, label)

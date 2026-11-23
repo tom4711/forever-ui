@@ -28,14 +28,7 @@ end
 function ns.PriestView.Create(name,preview)
     local L=ns.L
     local readOnly=preview==true
-    local root = CreateFrame("Frame", name, UIParent)
-    root:SetSize(156, 26)
-    root:SetClampedToScreen(true)
-    local panel = UI.CreatePanel(root)
-    panel:SetAllPoints()
-    local title = UI.Text(panel, 13, T.goldLight)
-    title:SetPoint("LEFT", 11, 0)
-    title:SetText(L.PRIEST)
+    local root = UI.CreateClassAnchor(name, "priest", 156, 26)
 
     local function makeGroup(label, settingsKey)
         local frame = CreateFrame("Frame", nil, root)
@@ -206,6 +199,5 @@ function ns.PriestView.Create(name,preview)
         if not readOnly then ns.Bindings.Refresh() end
         return true
     end
-    UI.MakeMovable(root,"priest")
     root:Hide();return view
 end

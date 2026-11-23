@@ -123,12 +123,15 @@ end
 
 local function createView(class, preview)
     local L = ns.L
-    local root = UI.CreatePanel(UIParent, nil)
-    root:SetSize(250, 31)
-    local title = UI.Text(root, 13, T.goldLight)
-    title:SetPoint("LEFT", 12, 0)
-    title:SetText(L[class.label])
-    UI.MakeMovable(root, class.module)
+    local hasStatus = class.module == "rogue" or class.module == "warrior"
+    local root
+    if hasStatus then
+        root = UI.CreatePanel(UIParent)
+        root:SetSize(250, 31)
+        UI.MakeMovable(root, class.module)
+    else
+        root = UI.CreateClassAnchor(nil, class.module, 250, 31)
+    end
     root:Hide()
     local groups = {}
     for _, group in ipairs(class.groups) do
@@ -136,9 +139,9 @@ local function createView(class, preview)
     end
 
     local status
-    if class.module == "rogue" or class.module == "warrior" then
+    if hasStatus then
         status = UI.Text(root, 11, T.teal)
-        status:SetPoint("RIGHT", -12, 0)
+        status:SetPoint("LEFT", 12, 0)
     end
 
     local function makeButton(parent, entry)

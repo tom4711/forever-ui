@@ -37,6 +37,7 @@ events:SetScript("OnEvent",function(_,event,name)
         ns.db=ns.Settings.Load(ForeverUICharDB)
         ForeverUICharDB=ns.db
     elseif event=="PLAYER_LOGIN" then
+        ns.Theme.SetClassAccent(ns.db.classAccent)
         SLASH_FOREVERUI1="/fui"
         SlashCmdList.FOREVERUI=function(message)
             if message:match("^%s*preview%s*$") then ns.Preview.SetEnabled(not ns.Preview.IsEnabled())

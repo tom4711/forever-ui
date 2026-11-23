@@ -13,6 +13,12 @@ test("fresh characters have usable independent module defaults", function()
     assert(c.locked == true and c.schemaVersion == 1)
 end)
 
+test("class accent is opt-in and preserves a saved boolean", function()
+    assert(load(nil).classAccent == false)
+    assert(load({classAccent = true}).classAccent == true)
+    assert(load({classAccent = "true"}).classAccent == false)
+end)
+
 test("valid saved choices survive normalization", function()
     local c = load({locked=false, hunter={enabled=false,scale=1.25,ammoWarning=0,
         position={point="TOP",relativePoint="TOP",x=20,y=-40}}})

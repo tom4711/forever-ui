@@ -124,13 +124,88 @@ end
 local function save()
     if sessionReady then ns.db.xpSession=state end
 end
+local nativeSlots = {}
+local hideNativeXP = false
+
+local function maskRegion(regions, region)
+    if not region then return end
+    local alpha = R.Number(region:GetAlpha())
+    local hasMouse = region.IsMouseEnabled and R.Boolean(region:IsMouseEnabled())
+    if not hasMouse and (alpha == nil or alpha == 0) then return end
+
+    -- A redraw can restore the native properties after the first mask.
+    local original = regions[region] or {}
+    regions[region] = original
+    if alpha and alpha ~= 0 then
+        original.alpha = alpha
+        region:SetAlpha(0)
+    end
+    if hasMouse then
+        original.hadMouse = true
+        region:EnableMouse(false)
+    end
+end
+
+local function restoreRegions(regions)
+    for region, original in pairs(regions) do
+        if original.alpha and R.Number(region:GetAlpha()) == 0 then
+            region:SetAlpha(original.alpha)
+        end
+        if original.hadMouse then region:EnableMouse(true) end
+        regions[region] = nil
+    end
+end
+
+local function updateNativeSlot(container, experience)
+    local regions = nativeSlots[container]
+    local xpBar = container.bars and container.bars[experience]
+    if not hideNativeXP or not xpBar or container.shownBarIndex ~= experience then
+        restoreRegions(regions)
+        return
+    end
+
+    -- Keep the container's own visibility and alpha under Blizzard's animation control.
+    maskRegion(regions, xpBar)
+    maskRegion(regions, xpBar.ExhaustionTick)
+    maskRegion(regions, container.BarFrameTexture)
+    local dividers = container.HorizontalDividersPool
+    if dividers then
+        for divider in dividers:EnumerateActive() do maskRegion(regions, divider) end
+    end
+end
+
+local function syncNativeXP(visible)
+    hideNativeXP = visible
+    if not visible then
+        for _, regions in pairs(nativeSlots) do restoreRegions(regions) end
+        return
+    end
+
+    local manager = StatusTrackingBarManager
+    local kinds = StatusTrackingBarInfo and StatusTrackingBarInfo.BarsEnum
+    local experience = kinds and kinds.Experience
+    if not manager or not manager.barContainers or not experience then return end
+
+    for _, container in ipairs(manager.barContainers) do
+        if not nativeSlots[container] then
+            nativeSlots[container] = {}
+            local function update() updateNativeSlot(container, experience) end
+            hooksecurefunc(container, "ApplyPendingBarToShow", update)
+            hooksecurefunc(container, "UpdateDividers", update)
+        end
+        updateNativeSlot(container, experience)
+    end
+end
+
 local function render()
     if not view or not state then return end
     local summary=M.Summarize(state,now())
     summary.questXP=questXP
     summary.flight=ns.XP.FlightSnapshot()
     view.Render(summary)
-    view.frame:SetShown(ns.db.xp.enabled and not ns.Preview.IsEnabled() and (not summary.atCap or ns.db.xp.showAtCap))
+    local visible = ns.db.xp.enabled and not ns.Preview.IsEnabled() and (not summary.atCap or ns.db.xp.showAtCap)
+    view.frame:SetShown(visible)
+    syncNativeXP(visible)
 end
 local function sample()
     pending=false

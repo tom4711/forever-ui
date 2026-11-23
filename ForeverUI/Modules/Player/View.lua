@@ -88,8 +88,12 @@ function ns.PlayerView.Create(name,preview)
     title:SetPoint("TOPLEFT",90,-20)
     local level=UI.Text(panel,12,T.muted)
     level:SetPoint("TOPLEFT",90,-47)
+    local money = UI.Text(panel, 10, T.goldLight)
+    money:SetPoint("TOPLEFT", level, "BOTTOMLEFT", 0, -4)
+    money:SetWidth(119)
+    money:SetWordWrap(false)
     local resting = UI.Text(panel, 10, T.restedText)
-    resting:SetPoint("TOPLEFT", level, "BOTTOMLEFT", 0, -6)
+    resting:SetPoint("TOPLEFT", 90, -81)
     resting:SetText(L.REST_AREA)
     resting:Hide()
 
@@ -349,6 +353,11 @@ function ns.PlayerView.Create(name,preview)
     end
 
     local view = {frame = root, nativeBuffs = buffs.native, nativeDebuffs = debuffs.native}
+    function view.RenderMoney(amount)
+        local text = amount and amount >= 0
+            and ns.Read.Call(C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString, amount, 10)
+        money:SetText(type(text) == "string" and text or "")
+    end
     function view.RefreshDispels()
         local container = debuffs.dispelContainer
         if container and container.UpdateAllAuras then pcall(container.UpdateAllAuras, container) end

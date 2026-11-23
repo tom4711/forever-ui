@@ -37,6 +37,7 @@ for _, path in ipairs({
     "tests/party_test.lua",
     "tests/player_castbar_test.lua",
     "tests/inventory_appearance_test.lua",
+    "tests/action_bar_appearance_test.lua",
     "tests/combat_queue_test.lua",
     "tests/food_test.lua",
     "tests/xp_test.lua",

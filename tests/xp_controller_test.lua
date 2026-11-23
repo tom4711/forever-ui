@@ -63,6 +63,92 @@ test("XP panel initializes from a live snapshot even before the world event",fun
     end)
 end)
 
+test("Forever XP hides only the native experience visuals and restores them on swaps and disabling",function()
+    withXPController(function(ns,live,frame)
+        local function region(alpha,mouse)
+            local object={alpha=alpha,mouse=mouse}
+            function object:GetAlpha()return self.alpha end
+            function object:SetAlpha(value)self.alpha=value end
+            if mouse~=nil then
+                function object:IsMouseEnabled()return self.mouse end
+                function object:EnableMouse(value)self.mouse=value end
+            end
+            return object
+        end
+        local function statusSlot(index)
+            local xp=region(0.8,true)
+            xp.ExhaustionTick=region(1,true)
+            local divider=region(0.7)
+            return {
+                bars={xp,region(1)},shownBarIndex=index,BarFrameTexture=region(0.9),divider=divider,
+                HorizontalDividersPool={EnumerateActive=function()return pairs({[divider]=true})end},
+                ApplyPendingBarToShow=function(self,nextIndex)self.shownBarIndex=nextIndex end,
+                UpdateDividers=function(self)
+                    local newDivider=region(0.6)
+                    self.divider=newDivider
+                    self.HorizontalDividersPool.EnumerateActive=function()return pairs({[newDivider]=true})end
+                end,
+            }
+        end
+        local main,secondary=statusSlot(1),statusSlot(2)
+        local hookFunction=hooksecurefunc
+        withGlobals({
+            StatusTrackingBarInfo={BarsEnum={Experience=1,Reputation=2}},
+            StatusTrackingBarManager={barContainers={main,secondary}},
+            hooksecurefunc=function(owner,method,callback)
+                if type(owner)=="string" then return hookFunction(owner,method)end
+                local original=owner[method]
+                owner[method]=function(...)
+                    original(...)
+                    callback(...)
+                end
+            end,
+        },function()
+            ns.XP.Init()
+            assert(frame.shown and main.bars[1].alpha==0,"native XP remained visible")
+            assert(not main.bars[1].mouse and not main.bars[1].ExhaustionTick.mouse)
+            assert(main.BarFrameTexture.alpha==0 and main.divider.alpha==0)
+            assert(secondary.BarFrameTexture.alpha==0.9 and secondary.bars[2].alpha==1)
+            assert(main.bars[2].alpha==1)
+
+            live:event("PLAYER_ENTERING_WORLD",false,true)
+            live:flush()
+            -- A later redraw can restore visual properties after the initial mask.
+            main.bars[1]:SetAlpha(0.75)
+            main.bars[1]:EnableMouse(true)
+            main.bars[1].ExhaustionTick:EnableMouse(true)
+            main.BarFrameTexture:SetAlpha(0.85)
+            main.divider:SetAlpha(0.65)
+            live:tick()
+            assert(main.bars[1].alpha==0 and main.BarFrameTexture.alpha==0 and main.divider.alpha==0,
+                "a redraw after UI reload brought back the native XP bar")
+            assert(not main.bars[1].mouse and not main.bars[1].ExhaustionTick.mouse)
+
+            main:UpdateDividers()
+            assert(main.divider.alpha==0,"rebuilding dividers exposed the native bar")
+            main:ApplyPendingBarToShow(2)
+            secondary:ApplyPendingBarToShow(1)
+            assert(main.BarFrameTexture.alpha==0.85 and main.divider.alpha==0.6)
+            assert(main.bars[1].alpha==0.75 and main.bars[1].mouse and main.bars[1].ExhaustionTick.mouse)
+            assert(secondary.BarFrameTexture.alpha==0 and secondary.bars[1].alpha==0)
+
+            ns.Preview.IsEnabled=function()return true end
+            ns.XP.Refresh()
+            assert(not frame.shown and secondary.bars[1].alpha==0.8 and secondary.BarFrameTexture.alpha==0.9)
+            ns.Preview.IsEnabled=function()return false end
+            ns.XP.Refresh()
+            assert(frame.shown and secondary.bars[1].alpha==0)
+
+            ns.db.xp.enabled=false
+            ns.XP.Refresh()
+            assert(not frame.shown and secondary.bars[1].alpha==0.8 and secondary.bars[1].mouse)
+            assert(secondary.BarFrameTexture.alpha==0.9 and secondary.divider.alpha==0.7)
+            secondary:UpdateDividers()
+            assert(secondary.divider.alpha==0.6,"native dividers were changed while Forever XP was disabled")
+        end)
+    end)
+end)
+
 test("XP controller preserves earned XP and elapsed time across a UI reload",function()
     withXPController(function(ns,live)
         ns.db.xpSession=previousXPSession()

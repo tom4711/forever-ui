@@ -131,16 +131,25 @@ function ns.Player.Refresh()
     if not view.frame.dragging then ns.UI.Place(view.frame,"player") end
 end
 
+local function refreshMoney()
+    view.RenderMoney(R.Number(R.Call(GetMoney)))
+end
+
 function ns.Player.Init()
     if view then return end
     view=ns.PlayerView.Create("ForeverUI_Player")
     events=CreateFrame("Frame")
-    for _,event in ipairs({"PLAYER_ENTERING_WORLD","PLAYER_LEVEL_UP","PLAYER_UPDATE_RESTING","UNIT_HEALTH","UNIT_MAXHEALTH",
+    for _,event in ipairs({"PLAYER_ENTERING_WORLD","PLAYER_LEVEL_UP","PLAYER_UPDATE_RESTING","PLAYER_MONEY","UNIT_HEALTH","UNIT_MAXHEALTH",
         "UNIT_POWER_UPDATE","UNIT_MAXPOWER","UNIT_DISPLAYPOWER","UNIT_AURA","SPELLS_CHANGED","PLAYER_REGEN_ENABLED"})do
         events:RegisterEvent(event)
     end
     if view.nativeBuffs and view.nativeDebuffs then events:UnregisterEvent("UNIT_AURA") end
     events:SetScript("OnEvent",function(_,event,unit)
+        if event=="PLAYER_MONEY" then
+            refreshMoney()
+            return
+        end
+        if event=="PLAYER_ENTERING_WORLD" then refreshMoney() end
         if (event=="UNIT_HEALTH"or event=="UNIT_MAXHEALTH"or event=="UNIT_POWER_UPDATE"or
             event=="UNIT_MAXPOWER"or event=="UNIT_DISPLAYPOWER"or event=="UNIT_AURA")and unit~="player"then
             return
@@ -153,5 +162,6 @@ function ns.Player.Init()
         end
         ns.Player.Refresh()
     end)
+    refreshMoney()
     ns.Player.Refresh()
 end

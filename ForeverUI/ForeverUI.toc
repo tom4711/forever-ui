@@ -1,8 +1,8 @@
 ## Interface: 16001
 ## Title: Forever UI
-## Notes: Hunter and XP tools in an ornate gold and petrol style. Alpha build.
+## Notes: Class controls and XP tools in an ornate gold and petrol style. Alpha build.
 ## Author: tom4711
-## Version: 0.1.8-alpha
+## Version: 0.1.35-alpha
 ## SavedVariablesPerCharacter: ForeverUICharDB
 
 Locales.lua
@@ -10,8 +10,14 @@ Core/Read.lua
 Core/Settings.lua
 Core/Format.lua
 Core/CombatQueue.lua
+Core/Bindings.lua
+Core/FriendlyBuffs.lua
 UI/Theme.lua
 UI/Widgets.lua
+UI/SpellPower.lua
+UI/SpellCooldown.lua
+UI/InterruptCue.lua
+Modules/Player/View.lua
 Modules/Hunter/Model.lua
 Modules/Hunter/FoodModel.lua
 Modules/Hunter/Feed.lua
@@ -19,9 +25,32 @@ Modules/Hunter/ActionModel.lua
 Modules/Hunter/Actions.lua
 Modules/Hunter/View.lua
 Modules/Hunter/Controller.lua
+Modules/Paladin/Model.lua
+Modules/Paladin/View.lua
+Modules/Paladin/Controller.lua
+Modules/Warlock/Model.lua
+Modules/Warlock/View.lua
+Modules/Warlock/Controller.lua
+Modules/Priest/Model.lua
+Modules/Priest/View.lua
+Modules/Priest/Controller.lua
+Modules/Companion.lua
+Modules/Totems.lua
+Modules/ClassSupport.lua
+Modules/Target/Model.lua
+Modules/Target/View.lua
+Modules/Target/Controller.lua
+Modules/Party/View.lua
+Modules/Party/Controller.lua
+Modules/ActionBars/Appearance.lua
+Modules/Inventory/Appearance.lua
+Modules/Player/Controller.lua
+Modules/CastBar.lua
 Modules/XP/Model.lua
 Modules/XP/View.lua
 Modules/XP/Controller.lua
 UI/Preview.lua
+UI/Bindings.lua
 UI/Settings.lua
+UI/MinimapButton.lua
 Core/Bootstrap.lua

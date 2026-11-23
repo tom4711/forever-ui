@@ -126,3 +126,72 @@ function M.DisplayAmount(amount,maximum,mode)
     if mode=="percent" and finite(maximum) and maximum>0 then return amount/maximum*100 end
     return amount
 end
+
+local function flightFinite(value)return finite(value)end
+local function validRouteKey(route)
+    if type(route)~="string"or #route<5 or #route>150 or route:find("[|;\r\n\t]")then return false end
+    local split=route:find(" -> ",1,true)
+    return split~=nil and split>1 and split+4<=#route
+end
+local function validFlightSeconds(value)return flightFinite(value) and value>=5 and value<=3600 end
+local function routeCount(routes)
+    local count=0
+    for route in pairs(type(routes)=="table"and routes or {})do if validRouteKey(route)then count=count+1 end end
+    return count
+end
+function M.FlightRouteKey(origin,destination)
+    if type(origin)~="string"or type(destination)~="string"then return nil end
+    origin=origin:match("^%s*(.-)%s*$");destination=destination:match("^%s*(.-)%s*$")
+    if #origin<2 or #origin>70 or #destination<2 or #destination>70 then return nil end
+    local route=origin.." -> "..destination
+    return validRouteKey(route)and route or nil
+end
+function M.FlightEstimate(routeSeconds,routeLength,secondsPerUnit)
+    local estimate
+    if validFlightSeconds(routeSeconds)then estimate=routeSeconds
+    elseif flightFinite(routeLength)and routeLength>0 and routeLength<=10 and flightFinite(secondsPerUnit)and secondsPerUnit>=100 and secondsPerUnit<=4000 then
+        estimate=routeLength*secondsPerUnit
+        if estimate<5 then estimate=5 elseif estimate>3600 then estimate=3600 end
+    end
+    return estimate
+end
+function M.FlightProgress(elapsed,estimate)
+    if not flightFinite(elapsed)or elapsed<0 or not validFlightSeconds(estimate)then return nil end
+    return math.max(0,math.min(1,elapsed/estimate))
+end
+function M.ImportFlightData(flightData,source)
+    if type(flightData)~="table"then return false end
+    flightData.routes=type(flightData.routes)=="table"and flightData.routes or {}
+    if flightData.importedForeverXPBar==true or type(source)~="table"then return false end
+    local copied=false;local count=routeCount(flightData.routes)
+    if type(source.flightRouteDurations)=="table"then
+        local keys={};for route in pairs(source.flightRouteDurations)do if validRouteKey(route)then keys[#keys+1]=route end end
+        table.sort(keys)
+        for _,route in ipairs(keys)do
+            local seconds=source.flightRouteDurations[route]
+            if count>=500 then break end
+            if validFlightSeconds(seconds)and not validFlightSeconds(flightData.routes[route])then
+                flightData.routes[route]=seconds;count=count+1;copied=true
+            end
+        end
+    end
+    if (not flightFinite(flightData.secondsPerUnit)or flightData.secondsPerUnit==650)
+        and flightFinite(source.flightScale)and source.flightScale>=100 and source.flightScale<=4000 then
+        flightData.secondsPerUnit=source.flightScale;copied=true
+    end
+    if copied then flightData.importedForeverXPBar=true end
+    return copied
+end
+function M.RecordFlight(flightData,route,seconds,routeLength)
+    if type(flightData)~="table"or not validRouteKey(route)or not validFlightSeconds(seconds)
+        or not flightFinite(routeLength)or routeLength<=0 or routeLength>10 then return false end
+    flightData.routes=type(flightData.routes)=="table"and flightData.routes or {}
+    local old=flightData.routes[route]
+    if not validFlightSeconds(old)and routeCount(flightData.routes)>=500 then return false end
+    flightData.routes[route]=validFlightSeconds(old)and old*0.7+seconds*0.3 or seconds
+    local oldScale=flightData.secondsPerUnit
+    if not flightFinite(oldScale)or oldScale<100 or oldScale>4000 then oldScale=650 end
+    local sample=seconds/routeLength
+    flightData.secondsPerUnit=math.max(100,math.min(4000,oldScale*0.7+sample*0.3))
+    return true
+end

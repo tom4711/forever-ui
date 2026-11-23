@@ -126,3 +126,36 @@ test("XP labels retain absolute values or show independent percent amounts",func
     assert(ns.XPModel.DisplayAmount(6200,25200,"percent")==6200/25200*100)
     assert(ns.XPModel.DisplayAmount(30000,25200,"percent")>100)
 end)
+
+test("flight estimates validate route keys, duration, geometry and progress",function()
+    local m=model();assert(m.FlightRouteKey and m.FlightEstimate and m.FlightProgress,"flight estimates are not implemented")
+    assert(m.FlightRouteKey("Stormwind","Ironforge")=="Stormwind -> Ironforge")
+    assert(m.FlightRouteKey("","Ironforge")==nil and m.FlightRouteKey(string.rep("x",151),"IF")==nil)
+    assert(m.FlightEstimate(90,2,650)==90)
+    assert(m.FlightEstimate(nil,2,100)==200)
+    assert(m.FlightEstimate(nil,0,650)==nil and m.FlightEstimate(2,0,650)==nil)
+    assert(m.FlightProgress(30,90)==1/3)
+    assert(m.FlightProgress(120,90)==1 and m.FlightProgress(1,nil)==nil)
+end)
+
+test("ForeverXPBar route data imports once without replacing local calibration",function()
+    local m=model();assert(m.ImportFlightData,"flight data migration is not implemented")
+    local localData={routes={ ["Stormwind -> Ironforge"]=80 },secondsPerUnit=700}
+    local changed=m.ImportFlightData(localData,{flightRouteDurations={ ["Stormwind -> Ironforge"]=100,["Ironforge -> Menethil"]=120,broken=9999 },flightScale=900})
+    assert(changed==true and localData.routes["Stormwind -> Ironforge"]==80)
+    assert(localData.routes["Ironforge -> Menethil"]==120 and localData.secondsPerUnit==700 and localData.importedForeverXPBar==true)
+    assert(m.ImportFlightData(localData,{flightRouteDurations={ ["Darnassus -> Auberdine"]=90 },flightScale=800})==false)
+    assert(localData.routes["Darnassus -> Auberdine"]==nil)
+end)
+
+test("route learning rejects partial flights and smooths completed flight samples",function()
+    local m=model();assert(m.RecordFlight,"flight learning is not implemented")
+    local data={routes={},secondsPerUnit=650}
+    assert(m.RecordFlight(data,"Stormwind -> Ironforge",3,1)==false)
+    assert(m.RecordFlight(data,"Stormwind -> Ironforge",100,2)==true)
+    assert(data.routes["Stormwind -> Ironforge"]==100 and math.abs(data.secondsPerUnit-470)<0.000001)
+    assert(m.RecordFlight(data,"Stormwind -> Ironforge",200,4)==true)
+    assert(math.abs(data.routes["Stormwind -> Ironforge"]-130)<0.000001 and math.abs(data.secondsPerUnit-344)<0.000001)
+    for i=1,500 do data.routes[string.format("Zone%03d -> ZoneEnd",i)]=100 end
+    assert(m.RecordFlight(data,"Newplace -> Faraway",100,1)==false)
+end)

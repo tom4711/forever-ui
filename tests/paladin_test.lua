@@ -1,0 +1,38 @@
+local ns={}
+loadAddon("Modules/Paladin/Model.lua",ns)
+local function model()assert(ns.PaladinModel,"Paladin model is missing");return ns.PaladinModel end
+
+test("paladin actions include only learned spells and choose highest known ranks",function()
+    local actions=model().Actions({[465]=true,[10290]=true,[7294]=true,[19740]=true,[19834]=true})
+    assert(#actions==3)
+    assert(actions[1].key=="devotion" and actions[1].spellID==10290)
+    assert(actions[2].key=="retribution" and actions[2].spellID==7294)
+    assert(actions[3].key=="might" and actions[3].spellID==19834)
+end)
+
+test("paladin active aura distinguishes active, inactive and unreadable aura state",function()
+    local actions=model().Actions({[465]=true,[10290]=true,[7294]=true})
+    assert(model().ActiveAura(actions,function(id)return id==465 end)=="devotion")
+    assert(model().ActiveAura(actions,function()return false end)==nil)
+    assert(model().ActiveAura(actions,function()return nil end)=="unknown")
+end)
+
+test("paladin equipment toggle uses shield detection and rejects unsafe set names",function()
+    local macro=model().EquipmentMacro("Shield Set","Greatsword")
+    assert(macro=="/equipset [equipped:shield] Greatsword; Shield Set")
+    assert(model().EquipmentMacro("Shield; /cast X","Greatsword")==nil)
+    assert(model().EquipmentMacro(nil,"Greatsword")==nil)
+end)
+
+test("paladin resistance aura ranks can be clicked and the active one is identified",function()
+    local actions=model().Actions({[19891]=true,[19900]=true})
+    assert(#actions==1 and actions[1].key=="fireResistance" and actions[1].spellID==19900)
+    assert(model().ActiveAura(actions,function(id)return id==19891 end)=="fireResistance")
+end)
+
+test("greater blessings keep separate buttons without replacing reagent-free blessings",function()
+    local actions=model().Actions({[19740]=true,[19838]=true,[25782]=true,[25916]=true})
+    assert(#actions==2)
+    assert(actions[1].key=="might" and actions[1].spellID==19838)
+    assert(actions[2].key=="greaterMight" and actions[2].spellID==25916)
+end)

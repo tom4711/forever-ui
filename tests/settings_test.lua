@@ -39,6 +39,45 @@ test("characters and callers do not share mutable position defaults", function()
     assert(source.hunter.position.x == 9)
 end)
 
+test("hunter action groups default visible with independent root-relative positions",function()
+    local c=load(nil)
+    assert(c.hunter.aspectGroup.enabled==true and c.hunter.petGroup.enabled==true)
+    assert(c.hunter.aspectGroup.position.x==16 and c.hunter.aspectGroup.position.y==-72)
+    assert(c.hunter.petGroup.position.x==280 and c.hunter.petGroup.position.y==-72)
+    c.hunter.aspectGroup.position.x=99
+    assert(load(nil).hunter.aspectGroup.position.x==16)
+end)
+
+test("hunter group migration moves only legacy defaults and runs once", function()
+    local c = load({hunter = {
+        aspectGroup = {position = {x = 16, y = -108}},
+        petGroup = {position = {x = 302, y = -108}},
+    }})
+    assert(c.hunter.compactLayout == true)
+    assert(c.hunter.aspectGroup.position.x == 16 and c.hunter.aspectGroup.position.y == -72)
+    assert(c.hunter.petGroup.position.x == 302 and c.hunter.petGroup.position.y == -108)
+
+    c.hunter.aspectGroup.position.y = -108
+    local reloaded = load(c)
+    assert(reloaded.hunter.aspectGroup.position.y == -108, "keep positions chosen after migration")
+end)
+
+test("hunter action group visibility and valid positions persist independently",function()
+    local c=load({hunter={aspectGroup={enabled=false,position={x=34,y=-122}},
+        petGroup={enabled=true,position={x=301,y=-116}}}})
+    assert(c.hunter.aspectGroup.enabled==false and c.hunter.petGroup.enabled==true)
+    assert(c.hunter.aspectGroup.position.x==34 and c.hunter.aspectGroup.position.y==-122)
+    assert(c.hunter.petGroup.position.x==301 and c.hunter.petGroup.position.y==-116)
+end)
+
+test("malformed hunter group settings normalize without affecting the other group",function()
+    local c=load({hunter={aspectGroup={enabled="yes",position={x=math.huge,y=12}},
+        petGroup={enabled=false,position={x=150,y=-120}}}})
+    assert(c.hunter.aspectGroup.enabled==true)
+    assert(c.hunter.aspectGroup.position.x==16 and c.hunter.aspectGroup.position.y==12)
+    assert(c.hunter.petGroup.enabled==false and c.hunter.petGroup.position.x==150)
+end)
+
 test("invalid numerical options fall back rather than producing broken frames", function()
     local c=load({hunter={scale=math.huge,ammoWarning=-1},xp={scale=0/0}})
     assert(c.hunter.scale == 1 and c.xp.scale == 1)
@@ -83,4 +122,64 @@ end)
 test("invalid XP display modes safely default to XP",function()
     local c=load({xp={questDisplay="broken",restedDisplay=false}})
     assert(c.xp.questDisplay=="xp" and c.xp.restedDisplay=="xp")
+end)
+
+test("flight estimate settings normalize defaults and valid learned routes",function()
+    local defaults=load(nil)
+    assert(defaults.xp.flight.secondsPerUnit==650 and defaults.xp.flight.routes and next(defaults.xp.flight.routes)==nil)
+    assert(defaults.xp.flight.importedForeverXPBar==false)
+    local c=load({xp={flight={secondsPerUnit=750,importedForeverXPBar=true,routes={ ["Stormwind -> Ironforge"]=120 }}}})
+    assert(c.xp.flight.secondsPerUnit==750 and c.xp.flight.routes["Stormwind -> Ironforge"]==120)
+    assert(c.xp.flight.importedForeverXPBar==true)
+end)
+
+test("malformed flight route data is bounded and discarded during settings load",function()
+    local routes={["ZoneA -> ZoneB"]=120,["ZoneC -> ZoneD"]=4,[string.rep("x",151)]=90,["TooLong -> Duration"]=3601}
+    for i=1,510 do routes[string.format("Zone%03d -> ZoneEnd",i)]=100 end
+    local c=load({xp={flight={secondsPerUnit=99999,routes=routes,importedForeverXPBar="yes"}}})
+    local count=0;for _ in pairs(c.xp.flight.routes)do count=count+1 end
+    assert(c.xp.flight.secondsPerUnit==650 and c.xp.flight.importedForeverXPBar==false)
+    assert(c.xp.flight.routes["ZoneC -> ZoneD"]==nil and c.xp.flight.routes["TooLong -> Duration"]==nil)
+    assert(count<=500)
+end)
+
+test("paladin and warlock module settings default enabled with independent positions",function()
+    local c=load(nil)
+    assert(c.paladin.enabled==true and c.warlock.enabled==true)
+    assert(c.paladin.scale==1 and c.warlock.scale==1)
+    assert(c.paladin.position.x~=c.warlock.position.x or c.paladin.position.y~=c.warlock.position.y)
+    c.paladin.position.x=77
+    assert(load(nil).paladin.position.x~=77)
+end)
+
+test("paladin and warlock visibility, scale, positions and equipment sets persist independently",function()
+    local c=load({paladin={enabled=false,scale=1.4,position={point="TOP",relativePoint="TOP",x=10,y=-30},weaponSets={shield=0,twoHand=29}},
+        warlock={enabled=true,scale=0.8,position={point="BOTTOM",relativePoint="BOTTOM",x=-20,y=40}}})
+    assert(c.paladin.enabled==false and c.warlock.enabled==true)
+    assert(c.paladin.scale==1.4 and c.warlock.scale==0.8)
+    assert(c.paladin.position.x==10 and c.warlock.position.x==-20)
+    assert(c.paladin.weaponSets.shield==0 and c.paladin.weaponSets.twoHand==29)
+end)
+
+test("malformed paladin equipment set identifiers are discarded",function()
+    local c=load({paladin={weaponSets={shield=-1,twoHand="29"}},warlock={enabled="yes"}})
+    assert(c.paladin.weaponSets.shield==nil and c.paladin.weaponSets.twoHand==nil)
+    assert(c.warlock.enabled==true)
+end)
+
+test("appearance settings opt in separately and keep the full opacity range", function()
+    local defaults = load(nil)
+    assert(defaults.actionBars.enabled == false and defaults.actionBars.opacity == 0.25)
+    assert(defaults.inventory.enabled == false and defaults.inventory.opacity == 0.92)
+
+    local saved = {actionBars = {enabled = true, opacity = 0}, inventory = {enabled = false, opacity = 1}}
+    local config = load(saved)
+    assert(config.actionBars.enabled and config.actionBars.opacity == 0)
+    assert(not config.inventory.enabled and config.inventory.opacity == 1)
+    config.actionBars.opacity = 0.5
+    assert(saved.actionBars.opacity == 0)
+
+    config = load({actionBars = {enabled = "yes", opacity = 0 / 0}, inventory = {enabled = true, opacity = 5}})
+    assert(config.actionBars.enabled == false and config.actionBars.opacity == defaults.actionBars.opacity)
+    assert(config.inventory.enabled == true and config.inventory.opacity == defaults.inventory.opacity)
 end)

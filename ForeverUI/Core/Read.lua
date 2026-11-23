@@ -24,3 +24,10 @@ function ns.Read.Call(fn,...)
     local ok,value=ns.Read.Try(fn,...)
     if ok then return value end
 end
+
+function ns.Read.SpellKnown(id)
+    local R = ns.Read
+    return R.Boolean(R.Call(C_SpellBook and C_SpellBook.IsSpellKnown, id)) == true
+        or R.Boolean(R.Call(IsPlayerSpell, id)) == true
+        or R.Boolean(R.Call(IsSpellKnown, id)) == true
+end

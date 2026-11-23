@@ -1,7 +1,8 @@
 local _,ns=...
 local R,UI,T=ns.Read,ns.UI,ns.Theme
 ns.HunterFeed={}
-local button,events,dragging
+local button,events,dragging,group
+local toolbarOffset=24
 local requested={}
 local function number(fn,...)return R.Number(R.Call(fn,...))end
 local function boolean(fn,...)return R.Boolean(R.Call(fn,...))end
@@ -76,11 +77,12 @@ function ns.HunterFeed.ShowMenu(anchor)
         if #foods==0 then root:CreateButton(ns.L.NO_FOOD):SetEnabled(false)end
     end)
 end
-local function create()
-    button=CreateFrame("Button","ForeverUI_Feed",UIParent,"SecureActionButtonTemplate")
-    button:SetSize(48,48);UI.Decorate(button)
-    button.icon=button:CreateTexture(nil,"ARTWORK");button.icon:SetPoint("TOPLEFT",6,-6);button.icon:SetPoint("BOTTOMRIGHT",-6,6);button.icon:SetTexCoord(0.07,0.93,0.07,0.93)
-    button.count=UI.Text(button,11,T.text);button.count:SetPoint("BOTTOMRIGHT",-5,5)
+local function create(parent)
+    button=CreateFrame("Button","ForeverUI_Feed",parent,"SecureActionButtonTemplate")
+    ns.Bindings.Watch("HunterFeed", button)
+    button:SetSize(36,36);UI.DecorateActionButton(button)
+    button.icon=button:CreateTexture(nil,"ARTWORK");button.icon:SetPoint("TOPLEFT",4,-4);button.icon:SetPoint("BOTTOMRIGHT",-4,4);button.icon:SetTexCoord(0.07,0.93,0.07,0.93)
+    button.count=UI.Text(button,11,T.text);button.count:SetPoint("BOTTOMRIGHT",-3,3)
     button:RegisterForClicks("LeftButtonUp","RightButtonUp")
     button:SetAttribute("useOnKeyDown",false)
     button:SetAttribute("spell",6991)
@@ -103,24 +105,28 @@ local function create()
     end)
     button:Hide()
 end
-function ns.HunterFeed.Refresh(config)
+function ns.HunterFeed.Refresh(config,parent,offset)
+    if parent then group=parent end
+    if offset then toolbarOffset=offset end
     ns.CombatQueue.Request("feed",function()
-        if not button then create()end
+        if not group then
+            if button then button:Hide() end
+            ns.Bindings.Refresh()
+            return
+        end
+        if not button then create(group)
+        elseif button:GetParent()~=group then button:SetParent(group)end
         config=ns.db.hunter
         local id=config.food
         local state,name=currentState()
         local ready=state=="ready"
         button:SetAttribute("type1",ready and "spell"or nil)
         button:SetAttribute("target-item",ready and name or nil)
-        button:ClearAllPoints();button:SetScale(config.scale)
-        local anchor=ns.Hunter.GetFrame()
-        local p=anchor and ns.FoodModel.FeedPosition({left=R.Number(anchor:GetLeft()),top=R.Number(anchor:GetTop()),
-            scale=R.Number(anchor:GetEffectiveScale()),parentScale=R.Number(UIParent:GetEffectiveScale()),
-            parentLeft=R.Number(UIParent:GetLeft()),parentBottom=R.Number(UIParent:GetBottom())})
-        if not p then button:Hide();return end
-        button:SetPoint(p.point,UIParent,p.relativePoint,p.x,p.y)
-        button:SetShown(config.enabled and not dragging and not ns.Preview.IsEnabled() and boolean(IsPlayerSpell,6991)==true)
+        button:ClearAllPoints();button:SetScale(1)
+        button:SetPoint("TOPLEFT",group,"TOPLEFT",toolbarOffset,-16)
+        button:SetShown(config.enabled and group:IsShown() and not dragging and not ns.Preview.IsEnabled() and boolean(IsPlayerSpell,6991)==true)
         updateCount()
+        ns.Bindings.Refresh()
     end)
 end
 function ns.HunterFeed.SetDragging(value)

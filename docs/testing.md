@@ -1,5 +1,16 @@
 # Prüfung
 
+## Prüfrunde 0.1.35-alpha
+
+- XP verdienen, die Sitzungswerte ablesen und `/reload` ausführen. XP-Gewinn und Sitzungszeit sollen erhalten bleiben. Bei einer neuen Anmeldung beginnt eine neue Sitzung.
+- Mit Jäger oder Hexer einen Begleiter rufen und den Forever-Spielerrahmen wechselweise aktivieren und deaktivieren. Den sichtbaren Blizzard-Begleiterrahmen anklicken und sein Rechtsklickmenü öffnen.
+- Die Blizzard-Zauberleiste im Bearbeitungsmodus am Spielerrahmen andocken. Einen Zauber mit aktivierter Forever-Leiste abschließen und die Forever-Leiste abschalten. Der beendete Zauber soll verschwunden bleiben und der nächste Zauber wieder über Blizzard angezeigt werden.
+- Eine Flugroute mit Zwischenhalt einmal vollständig fliegen und später vorzeitig landen. Das verkürzte Teilstück soll die gelernte Gesamtdauer nicht verändern.
+- Einen unterbrechbaren Gegnerspruch in und außerhalb der Reichweite testen. Der goldene Rand soll nur bei verfügbarer Unterbrechung und bestätigter Reichweite erscheinen.
+- Bei gleichzeitig aktiver Wick-Gestaltung die Taschen neu gestalten lassen und den Forever-Taschenstil ausschalten. Das zuletzt gesetzte native Aussehen soll erhalten bleiben.
+
+Die Lua-Suite prüft die nachgestellten Abläufe inklusive fehlgeschlagener Warteschlangeneinträge mit `lua tests/run.lua`. Die obigen Schritte prüfen zusätzlich den echten Client.
+
 ## Entwicklungsprüfungen
 
 - Lua-5.1-kompatible Syntax und keine Laufzeitabhängigkeiten von anderen Addons.
@@ -67,3 +78,25 @@ Die Abschlussprüfung hat die Pet-Button-Slots über wiederholte Aktualisierunge
 Der XP-Controller initialisiert die normale XP-Leiste sofort aus einem lesbaren Snapshot; ein Test deckt den Fall ab, dass das Welt-Ereignis später eintrifft.
 
 Ein Startfehler durch das Forever-unbekannte `LEARNED_SPELL_IN_TAB` wurde durch die gültige Forever-Eventvariante `LEARNED_SPELL_IN_SKILL_LINE` ersetzt. Der Regressionstest prüft die registrierten Spell-Events.
+
+## Hunter-Buttonreihe (Alpha 0.1.9)
+
+Die gelernten Aspekte und verfügbaren Pet-Aktionen sowie Füttern, Futterwahl und Einstellungen stehen jetzt in einer gemeinsamen Reihe unter dem Hunter-Statusfeld. Die Aktionen behalten ihre Reihenfolge; die nachfolgenden Werkzeuge rücken abhängig von der Zahl erlernter Aktionen mit. Die Offline-Tests decken fünf und acht Aktionen ab. 74 Tests bestehen; Lua-5.1-Syntax und Paketinhalt wurden geprüft. Die tatsächliche Anordnung und Abstände sind nach `/reload` noch im Forever-Client zu bestätigen.
+
+## Getrennte Hunter-Aktionsgruppen (Alpha 0.1.10)
+
+Aspekte haben eine eigene Box; die Pet-Box enthält Mend Pet, Revive Pet, Füttern und Futterwahl. Die Einstellungen-Schaltfläche bleibt separat. Beide Boxen lassen sich unabhängig über Settings ein-/ausblenden und bei entsperrten Positionen per Alt/Option ziehen; ihre Offsets bleiben relativ zum Hunter-Control gespeichert. Ein aktiver Aspekt erhält eine türkise Kontur, ein nicht lesbarer Aura-Status einen gedämpften Hinweisrahmen.
+
+88 Offline-Tests bestehen, darunter unabhängige Gruppenpositionen, Sichtbarkeitseinstellungen, nicht verfügbare Aura-Daten, die Abfrage aller erlernten Aspektränge und root-relative Drag-Koordinaten. Revive Pet nutzt nun den direkten sicheren Spell-Klick per ID 982 statt eines Makros mit Pet-Zielbedingung. Drag-Ende wird bei Kampfbeginn bis nach Kampfende aufgeschoben. Lua-5.1-Syntax und Paketinhalt sind geprüft; der installierte Ordner stimmt mit dem Paket überein. Im Forever-Client müssen Wiederbeleben, 100-%-Abstände, Draggen der Gruppen, Settings-Schalter, aktive Aspektmarkierung sowie Füttern und Zauberklicks bestätigt werden.
+
+## Flugzeit in der XP-Leiste (Alpha 0.1.11)
+
+Die XP-Leiste ergänzt während des Flugs eine türkise Fortschrittslinie und die vergangene Zeit. Ist eine gelernte oder aus ForeverXPBar einmalig importierte Route verfügbar, erscheint zusätzlich deren Gesamtdauer; sonst schätzt ForeverUI die Route aus den Taxikarten-Knoten und kennzeichnet die Schätzung. Ohne lesbare Routengeometrie bleibt nur die verstrichene Zeit. Die XP-Leiste wächst während dieser Anzeige um 26 UI-Einheiten und kehrt nach der Landung auf ihre vorherige Höhe zurück. Der zusätzliche Abstand hält den Flugzeittext sichtbar von der unteren Rahmenkante fern.
+
+Die erste Schätzung ist grob; abgeschlossene, von ForeverUI beobachtete Flüge kalibrieren die Routendauer. Offline-Tests decken Modellgrenzen, Import, Taxiübergänge, partielle Flüge, Zeittext und Fortschrittsbreite ab. Im Forever-Client sind eine neue und eine bekannte Route, Anzeige ohne ForeverXPBar, Verbergen nach der Landung sowie unveränderte XP-/Sitzungswerte zu prüfen.
+
+## Paladin- und Hexer-Controls (Alpha 0.1.12)
+
+Klassenanzeigen erscheinen nur auf der passenden Klasse und lassen sich pro Charakter in den Settings ausblenden. Paladine erhalten manuelle Buttons für gelernte Auren und Segen sowie eine aktive-Aura-Markierung. Der Ausrüstungsbutton erscheint nur mit zwei aktuellen Equipment-Sets und wechselt sie per Klick anhand des Schildstatus. Hexer sehen Dämonenstatus, Seelensplitter und gelernte Beschwörungen. Die Vorschau nutzt Beispieldaten und reine Anzeige-Buttons.
+
+112 Offline-Tests decken Klassenfilter, Set-Normalisierung und Makros, Aura- und Dämonenzustände, CombatQueue, `C_Item`-Fallbacks, Live-/Vorschau-Buttonmodi und das Layout ab. Im Client bleiben Zauberklicks, der Equipment-Wechsel inklusive Kampfverhalten und die Darstellung bei vielen gelernten Zaubern zu prüfen.

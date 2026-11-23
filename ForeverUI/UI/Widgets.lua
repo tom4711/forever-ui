@@ -1,5 +1,6 @@
 local _, ns = ...
 local UI, T = ns.UI, ns.Theme
+local deferredMoves={}
 function UI.Rect(parent, color, layer)
     local texture=parent:CreateTexture(nil,layer or "ARTWORK")
     texture:SetColorTexture(unpack(color))
@@ -45,6 +46,37 @@ function UI.DecorateControl(frame)
     stroke(frame,1,T.gold,1)
     stroke(frame,3,{0.05,0.15,0.17,1},1)
 end
+function UI.DecorateActionButton(frame)
+    local bg=UI.Rect(frame,T.inset,"BACKGROUND");bg:SetAllPoints()
+    stroke(frame,0,T.goldDark,2)
+    stroke(frame,2,T.gold,1)
+    stroke(frame,4,{0.05,0.15,0.17,1},1)
+    for _,point in ipairs({"TOPLEFT","TOPRIGHT","BOTTOMLEFT","BOTTOMRIGHT"})do
+        local stud=UI.Rect(frame,T.goldDark,"OVERLAY");stud:SetSize(3,3);stud:SetPoint(point,frame,point,point:find("LEFT") and 2 or -2,point:find("TOP") and -2 or 2)
+    end
+end
+function UI.ActionOutline(frame)
+    local teal={}
+    local top=UI.Rect(frame,T.teal,"OVERLAY");top:SetPoint("TOPLEFT",2,-2);top:SetPoint("TOPRIGHT",-2,-2);top:SetHeight(2);teal[#teal+1]=top
+    local bottom=UI.Rect(frame,T.teal,"OVERLAY");bottom:SetPoint("BOTTOMLEFT",2,2);bottom:SetPoint("BOTTOMRIGHT",-2,2);bottom:SetHeight(2);teal[#teal+1]=bottom
+    local left=UI.Rect(frame,T.teal,"OVERLAY");left:SetPoint("TOPLEFT",2,-2);left:SetPoint("BOTTOMLEFT",2,2);left:SetWidth(2);teal[#teal+1]=left
+    local right=UI.Rect(frame,T.teal,"OVERLAY");right:SetPoint("TOPRIGHT",-2,-2);right:SetPoint("BOTTOMRIGHT",-2,2);right:SetWidth(2);teal[#teal+1]=right
+    for _,texture in ipairs(teal)do texture:Hide()end
+    return teal
+end
+function UI.SetActionState(outline,state)
+    if not outline then return end
+    local color=state=="active" and T.teal or T.muted
+    for _,texture in ipairs(outline)do
+        texture:SetVertexColor(unpack(color))
+        texture:SetShown(state=="active" or state=="unknown")
+    end
+end
+function UI.DecorateGroup(frame)
+    local bg=UI.Rect(frame,{T.inset[1],T.inset[2],T.inset[3],0.72},"BACKGROUND");bg:SetAllPoints()
+    stroke(frame,0,{T.goldDark[1],T.goldDark[2],T.goldDark[3],0.88},1)
+    stroke(frame,2,{T.gold[1],T.gold[2],T.gold[3],0.42},1)
+end
 function UI.CreatePanel(parent,id)
     local frame=CreateFrame("Frame",id,parent)
     frame:SetClampedToScreen(true)
@@ -62,10 +94,10 @@ function UI.Tooltip(frame,title,description)
     end)
     frame:SetScript("OnLeave",function() GameTooltip:Hide() end)
 end
-function UI.CreateIconButton(parent,id)
+function UI.CreateIconButton(parent,id,compact)
     local button=CreateFrame("Button",id,parent)
     button:SetSize(48,48)
-    UI.Decorate(button)
+    if compact then UI.DecorateActionButton(button)else UI.Decorate(button)end
     button.icon=button:CreateTexture(nil,"ARTWORK")
     button.icon:SetPoint("TOPLEFT",6,-6);button.icon:SetPoint("BOTTOMRIGHT",-6,6)
     button.icon:SetTexCoord(0.07,0.93,0.07,0.93)
@@ -95,24 +127,186 @@ function UI.CloseButton(parent,callback)
 end
 function UI.MakeMovable(frame,moduleName)
     frame:SetMovable(true);frame:EnableMouse(true);frame:RegisterForDrag("LeftButton")
+    local deferStop=false
+    local function capture()
+        if not frame.dragging then return false end
+        frame:StopMovingOrSizing();frame.dragging=false;deferStop=false
+        local point,_,relativePoint,x,y=frame:GetPoint()
+        ns.db[moduleName].position={point=point,relativePoint=relativePoint,x=x,y=y}
+        if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(false)end
+        return true
+    end
+    local function stopMoving(self)
+        if not self.dragging then return end
+        if InCombatLockdown()then
+            if not deferStop then deferStop=true;deferredMoves[frame]=function()return capture()end end
+            return
+        end
+        if capture() and moduleName=="hunter" and ns.HunterActions then ns.HunterActions.Relayout()end
+    end
     frame:SetScript("OnDragStart",function(self)
         if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then
             if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(true)end
             self:StartMoving();self.dragging=true
         end
     end)
-    frame:SetScript("OnDragStop",function(self)
-        if not self.dragging then return end
-        self:StopMovingOrSizing();self.dragging=false
-        local point,_,relativePoint,x,y=self:GetPoint()
-        ns.db[moduleName].position={point=point,relativePoint=relativePoint,x=x,y=y}
-        if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(false)end
-        if moduleName=="hunter" and ns.HunterActions then ns.HunterActions.Relayout()end
+    frame:SetScript("OnDragStop",stopMoving)
+    local events=CreateFrame("Frame")
+    events:RegisterEvent("PLAYER_REGEN_DISABLED")
+    events:SetScript("OnEvent",function()
+        if frame.dragging and not deferStop then deferStop=true;deferredMoves[frame]=function()return capture()end end
     end)
+end
+function UI.MakeGroupMovable(frame,groupName,moduleName)
+    moduleName=moduleName or "hunter"
+    frame:SetMovable(true);frame:SetClampedToScreen(true)
+    local grip=CreateFrame("Button",nil,frame)
+    grip:SetSize(14,24);grip:SetPoint("TOPLEFT",3,-17);grip:EnableMouse(true);grip:RegisterForDrag("LeftButton")
+    for row=1,3 do
+        for column=1,2 do
+            local dot=UI.Rect(grip,T.goldLight,"OVERLAY")
+            dot:SetSize(2,2);dot:SetPoint("TOPLEFT",3+(column-1)*4,-7-(row-1)*4)
+        end
+    end
+    UI.Tooltip(grip,ns.L.MOVE_GROUP,ns.L.MOVE_GROUP_HINT)
+    local deferStop=false
+    local function capture()
+        if not frame.dragging then return false end
+        frame:StopMovingOrSizing();frame.dragging=false
+        deferStop=false
+        local point,parent,relativePoint,x,y=frame:GetPoint()
+        local root=frame:GetParent()
+        if parent~=root or point~="TOPLEFT" or relativePoint~="TOPLEFT" then
+            local left,rootLeft=ns.Read.Number(frame:GetLeft()),ns.Read.Number(root:GetLeft())
+            local top,rootTop=ns.Read.Number(frame:GetTop()),ns.Read.Number(root:GetTop())
+            if left and rootLeft and top and rootTop then
+                local offset=ns.HunterActionModel.GroupOffset(left,top,rootLeft,rootTop)
+                if offset then x=offset.x;y=offset.y end
+            end
+        end
+        x=ns.Read.Number(x);y=ns.Read.Number(y)
+        if not x or not y then return true end
+        local moduleSettings=ns.db[moduleName]
+        if not moduleSettings or not moduleSettings[groupName]then return true end
+        moduleSettings[groupName].position={x=x,y=y}
+        return true
+    end
+    local function stopMoving()
+        if not frame.dragging then return end
+        if InCombatLockdown()then
+            if not deferStop then deferStop=true;deferredMoves[frame]=capture end
+            return
+        end
+        local controller=ns[moduleName:sub(1,1):upper()..moduleName:sub(2)]
+        if capture() then
+            if controller and controller.Refresh then controller.Refresh()
+            else ns.Refresh() end
+        end
+    end
+    grip:SetScript("OnDragStart",function()
+        if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then
+            frame:StartMoving();frame.dragging=true
+        end
+    end)
+    grip:SetScript("OnDragStop",stopMoving)
+    local events=CreateFrame("Frame")
+    events:RegisterEvent("PLAYER_REGEN_DISABLED")
+    events:SetScript("OnEvent",function()
+        if frame.dragging and not deferStop then deferStop=true;deferredMoves[frame]=capture end
+    end)
+    frame.dragGrip=grip
+end
+function UI.FlushDeferredMoves()
+    if InCombatLockdown()then return false end
+    local pending=deferredMoves;deferredMoves={}
+    local changed=false
+    for _,capture in pairs(pending)do if capture()then changed=true end end
+    return changed
 end
 function UI.Place(frame,moduleName)
     local config=ns.db[moduleName]
     frame:ClearAllPoints();frame:SetScale(config.scale)
     local p=config.position
     frame:SetPoint(p.point,UIParent,p.relativePoint,p.x,p.y)
+end
+
+function UI.CreateClassGroup(root, moduleName, key, label)
+    local frame = CreateFrame("Frame", nil, root)
+    frame:SetSize(120, 60)
+    UI.DecorateGroup(frame)
+    local caption = UI.Text(frame, 9, T.muted)
+    caption:SetPoint("TOPLEFT", 18, -4)
+    caption:SetText(label)
+    UI.MakeGroupMovable(frame, key, moduleName)
+    frame:Hide()
+    return {frame = frame, caption = caption, buttons = {}}
+end
+
+function UI.RenderClassGroup(group, config, entries, visible, makeButton)
+    local frame = group.frame
+    if not frame.dragging then
+        frame:ClearAllPoints()
+        frame:SetPoint("TOPLEFT", frame:GetParent(), "TOPLEFT", config.position.x, config.position.y)
+    end
+    local wanted = {}
+    for index, entry in ipairs(entries) do
+        wanted[entry.key] = true
+        local button = group.buttons[entry.key]
+        if not button or button.spellID ~= entry.spellID then
+            if button then button:Hide() end
+            button = makeButton(frame, entry)
+            button.spellID = entry.spellID
+            group.buttons[entry.key] = button
+        end
+        local column = (index - 1) % 5
+        local row = math.floor((index - 1) / 5)
+        button:ClearAllPoints()
+        button:SetPoint("TOPLEFT", frame, "TOPLEFT", 24 + column * 42, -18 - row * 42)
+        button:Show()
+    end
+    for key, button in pairs(group.buttons) do
+        if not wanted[key] then button:Hide() end
+    end
+    frame:SetSize(math.max(30 + group.caption:GetStringWidth(), 24 + math.min(#entries, 5) * 42),
+        60 + math.max(0, math.ceil(#entries / 5) - 1) * 42)
+    frame:SetShown(visible and config.enabled and #entries > 0)
+end
+
+function UI.CreateClassAction(parent, entry, preview, fallbackIcon, title, hint)
+    local template = not preview and "SecureActionButtonTemplate" or nil
+    local name = not preview and entry.bindingID and ns.Bindings.ButtonName(entry.bindingID) or nil
+    local button = CreateFrame("Button", name, parent, template)
+    if name then ns.Bindings.Watch(entry.bindingID, button) end
+    button:SetSize(36, 36)
+    UI.DecorateActionButton(button)
+    local icon = button:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", 4, -4)
+    icon:SetPoint("BOTTOMRIGHT", -4, 4)
+    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    local spellID = entry.spellID
+    local texture, spellName
+    if spellID then
+        texture = ns.Read.Call(C_Spell and C_Spell.GetSpellTexture, spellID) or ns.Read.Call(GetSpellTexture, spellID)
+        spellName = ns.Read.Call(C_Spell and C_Spell.GetSpellName, spellID) or ns.Read.Call(GetSpellInfo, spellID)
+    end
+    icon:SetTexture(texture or fallbackIcon)
+    if not preview then
+        button:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
+        button:SetAttribute("useOnKeyDown", false)
+        if entry.macro then
+            button:SetAttribute("type1", "macro")
+            button:SetAttribute("macrotext1", entry.macro)
+        elseif spellID then
+            button:SetAttribute("type1", "spell")
+            button:SetAttribute("spell", spellID)
+            if entry.unit then button:SetAttribute("unit", entry.unit) end
+        end
+    end
+    UI.Tooltip(button, spellName or title, preview and ns.L.PREVIEW_HINT or hint)
+    if not preview and spellID then
+        UI.TrackSpellCooldown(button, icon, spellID)
+        UI.TrackSpellPower(button, icon, spellID)
+        if entry.interrupt then ns.InterruptCue.Track(button, spellID) end
+    end
+    return button
 end

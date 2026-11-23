@@ -25,6 +25,10 @@ function ns.XPView.Create(name,preview)
     local earned=UI.Text(frame,11,T.muted)
     local eta=UI.Text(frame,11,T.muted)
     local elapsed=UI.Text(frame,11,T.muted);elapsed:SetPoint("TOPRIGHT",-20,-109)
+    local flightTrack=UI.Rect(frame,T.inset,"BACKGROUND");flightTrack:SetDrawLayer("BACKGROUND",1)
+    flightTrack:SetPoint("TOPLEFT",20,-128);flightTrack:SetSize(barWidth,3);flightTrack:Hide()
+    local flightFill=UI.Rect(frame,T.teal,"ARTWORK");flightFill:SetPoint("TOPLEFT",flightTrack,"TOPLEFT",0,0);flightFill:SetHeight(3);flightFill:Hide()
+    local flightText=UI.Text(frame,10,T.teal);flightText:SetPoint("TOPLEFT",20,-135);flightText:Hide()
     UI.MakeMovable(frame,"xp")
     local summary
     frame:SetScript("OnEnter",function(self)
@@ -55,12 +59,32 @@ function ns.XPView.Create(name,preview)
     end
     function view.SetWidth(width)
         frame:SetWidth(width);barWidth=width-40;track:SetWidth(barWidth)
+        flightTrack:SetWidth(barWidth)
         earned:ClearAllPoints();earned:SetPoint("TOPLEFT",frame,"TOPLEFT",width*0.27,-109)
         eta:ClearAllPoints();eta:SetPoint("TOPLEFT",frame,"TOPLEFT",width*0.53,-109)
         if summary then view.Render(summary)end
     end
     function view.Render(data)
         summary=data
+        local flying=type(data.flight)=="table"and data.flight.active==true
+        local rawProgress=flying and data.flight.progress
+        local progress=type(rawProgress)=="number"and rawProgress==rawProgress and math.max(0,math.min(1,rawProgress))or nil
+        frame:SetHeight(flying and 158 or 132)
+        flightText:SetShown(flying)
+        flightTrack:SetShown(flying and progress~=nil)
+        if flying then
+            local flightLabel=L.FLIGHT_TIME..": "..ns.Format.Duration(data.flight.elapsed)
+            if data.flight.estimate then
+                flightLabel=flightLabel.." / "..(data.flight.estimateIsApproximate and "~"or "")..ns.Format.Duration(data.flight.estimate)
+            end
+            flightText:SetText(flightLabel)
+            if progress~=nil then
+                flightFill:ClearAllPoints();flightFill:SetPoint("TOPLEFT",flightTrack,"TOPLEFT",0,0)
+                flightFill:SetWidth(math.max(0.01,barWidth*progress));flightFill:SetShown(true)
+            else flightFill:Hide()end
+        else
+            flightText:SetText("");flightFill:Hide()
+        end
         title:SetText(data.atCap and L.MAX_LEVEL or L.LEVEL_PREFIX.." "..ns.Format.Number(data.level))
         local p=data.percent
         local pText=p and string.format("%.1f",p)or "–"

@@ -28,12 +28,12 @@ end)
 
 test("secure feed placement follows actual clamped coordinates at equal scales",function()
     local p=model().FeedPosition({left=100,top=500,scale=1,parentScale=1,parentLeft=0,parentBottom=0})
-    assert(p.point=="TOPLEFT" and p.relativePoint=="BOTTOMLEFT" and p.x==332 and p.y==334)
+    assert(p.point=="TOPLEFT" and p.relativePoint=="BOTTOMLEFT" and p.x==332 and p.y==389)
 end)
 
 test("feed placement accounts for different UIParent scale without moving off the row",function()
     local p=model().FeedPosition({left=25,top=200,scale=0.8,parentScale=0.64,parentLeft=10,parentBottom=5})
-    assert(math.abs(p.x-249)<0.00001 and math.abs(p.y-30)<0.00001)
+    assert(math.abs(p.x-249)<0.00001 and math.abs(p.y-85)<0.00001)
 end)
 
 test("unresolved frame geometry never becomes a guessed secure anchor",function()

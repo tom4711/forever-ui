@@ -1,12 +1,10 @@
 local _,ns=...
 local UI,T=ns.UI,ns.Theme
 ns.HunterActions={}
-local buttons,aspects,visible,preview,root={}, {}, false, false, nil
-local function known(id)
-    local value=ns.Read.Boolean(ns.Read.Call(IsPlayerSpell,id))
-    if value==nil then value=ns.Read.Boolean(ns.Read.Call(IsSpellKnown,id))end
-    return value==true
-end
+local buttons,aspects,visible,preview,root,groups,toolbar,activeAspect={}, {}, false, false, nil, {}, ns.HunterActionModel.GroupLayout(0,0), "unknown"
+local A = ns.HunterActionModel
+local petLabels = {mend = "MEND_PET", revive = "REVIVE_PET", call = "CALL_PET", dismiss = "DISMISS_PET", markAttack = "HUNTER_MARK_ATTACK"}
+local bindingIDs = {mend = "HunterMend", revive = "HunterRevive", call = "HunterCall", dismiss = "HunterDismiss", markAttack = "HunterMarkAttack"}
 local function spellName(id)
     local name=ns.Read.Call(GetSpellInfo,id)
     if type(name)=="string" and name~=""then return name end
@@ -19,29 +17,21 @@ local function spellIcon(id)
     local info=ns.Read.Call(C_Spell and C_Spell.GetSpellInfo,id)
     return type(info)=="table" and info.iconID or T.icons.hunter
 end
-local function geometry()
-    if not root then return end
-    local left,top=ns.Read.Number(root:GetLeft()),ns.Read.Number(root:GetTop())
-    local scale,parentScale=ns.Read.Number(root:GetEffectiveScale()),ns.Read.Number(UIParent:GetEffectiveScale())
-    local parentLeft,parentBottom=ns.Read.Number(UIParent:GetLeft()),ns.Read.Number(UIParent:GetBottom())
-    if not left or not top or not scale or not parentScale or not parentLeft or not parentBottom then return end
-    return {left=left,top=top,scale=scale,parentScale=parentScale,parentLeft=parentLeft,parentBottom=parentBottom}
-end
-local function place(button,index)
-    local g=geometry();if not g then return false end
-    local position=ns.HunterActionModel.Position(g,index)
-    if not position then return false end
-    button:SetScale(position.scale)
+local function place(button,offset,parent)
+    if not parent or not offset then return false end
     button:ClearAllPoints()
-    button:SetPoint("TOPLEFT",UIParent,"BOTTOMLEFT",position.x,position.y)
+    button:SetScale(1)
+    button:SetPoint("TOPLEFT",parent,"TOPLEFT",offset,-18)
     return true
 end
 local function tooltip(button,key,id)
     button:SetScript("OnEnter",function(self)
         GameTooltip:SetOwner(self,"ANCHOR_TOP")
-        local name=spellName(id)or ns.L["ASPECT_"..key]or ns.L[key=="mend" and "MEND_PET" or "REVIVE_PET"]
-        GameTooltip:SetText(name,1,0.82,0.42)
-        if key=="mend"or key=="revive"then
+        local name=spellName(id)or ns.L["ASPECT_"..key]or ns.L[petLabels[key]] or key
+        GameTooltip:SetText(key == "markAttack" and ns.L.HUNTER_MARK_ATTACK or name,1,0.82,0.42)
+        if key == "markAttack" then
+            GameTooltip:AddLine(ns.L.HUNTER_MARK_ATTACK_HINT,0.79,0.85,0.84,true)
+        elseif key=="mend"or key=="revive"then
             local exists=ns.Read.Boolean(ns.Read.Call(UnitExists,"pet"))
             local dead=ns.Read.Boolean(ns.Read.Call(UnitIsDeadOrGhost,"pet"))
             local state=ns.HunterActionModel.PetAvailability(exists,dead)
@@ -52,20 +42,35 @@ local function tooltip(button,key,id)
     end)
     button:SetScript("OnLeave",function()GameTooltip:Hide()end)
 end
-local function create(key,id,index)
-    local button=CreateFrame("Button",nil,UIParent,"SecureActionButtonTemplate")
-    button:SetSize(32,32);UI.Decorate(button)
+local function create(key,id,index,parent)
+    local bindingID = bindingIDs[key]
+    local name = bindingID and ns.Bindings.ButtonName(bindingID)
+    local button = CreateFrame("Button", name, parent, "SecureActionButtonTemplate")
+    if name then ns.Bindings.Watch(bindingID, button) end
+    button:SetSize(32,32);UI.DecorateActionButton(button)
     button.icon=button:CreateTexture(nil,"ARTWORK");button.icon:SetPoint("TOPLEFT",4,-4);button.icon:SetPoint("BOTTOMRIGHT",-4,4)
     button.icon:SetTexture(spellIcon(id));button.icon:SetTexCoord(0.07,0.93,0.07,0.93)
+    button.aspectKey=not petLabels[key] and key or nil
+    button.activeOutline=button.aspectKey and UI.ActionOutline(button)
     button:RegisterForClicks(unpack(ns.HunterActionModel.ClickEvents));button:EnableMouse(true);button:SetAttribute("useOnKeyDown",false)
-    if key=="mend"or key=="revive"then
-        button:SetAttribute("type1","macro");button:SetAttribute("macrotext1",ns.HunterActionModel.PetMacro(key,spellName(id)))
+    if petLabels[key] then
+        local name = spellName(id)
+        if key == "markAttack" and not name then name = ns.L.HUNTER_MARK end
+        local action=A.PetAction(key,id,name)
+        if action then
+            button:SetAttribute("type1",action.type)
+            if action.type=="macro" then button:SetAttribute("macrotext1",action.macrotext)
+            else button:SetAttribute("spell",action.spell)end
+        end
     else button:SetAttribute("type1","spell");button:SetAttribute("spell",id) end
     button:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square","ADD")
     button:SetClampedToScreen(true)
     if root then button:SetFrameLevel(root:GetFrameLevel()+5)end
     tooltip(button,key,id)
-    button:Show();place(button,index)
+    local warning = (key == "mend" or key == "revive") and ns.L.NOT_ENOUGH_MANA or nil
+    UI.TrackSpellCooldown(button, button.icon, id)
+    UI.TrackSpellPower(button, button.icon, id, warning)
+    button:Show();place(button,index,parent)
     return button
 end
 local function apply()
@@ -73,36 +78,58 @@ local function apply()
     local wanted={}
     for index,entry in ipairs(aspects)do
         local key="aspect_"..entry.key;wanted[key]=true
+        local offset=toolbar.aspects.actions[index]
+        local parent=groups.aspects
         if not buttons[key]or buttons[key].spellID~=entry.spellID then
             if buttons[key]then buttons[key]:Hide();buttons[key]=nil end
-            buttons[key]=create(entry.key,entry.spellID,index-1);buttons[key].spellID=entry.spellID
+            buttons[key]=create(entry.key,entry.spellID,offset,parent);buttons[key].spellID=entry.spellID
         end
-        place(buttons[key],index-1);buttons[key]:SetShown(visible and not preview)
+        if buttons[key]:GetParent()~=parent then buttons[key]:SetParent(parent)end
+        place(buttons[key],offset,parent);buttons[key]:SetShown(visible and not preview)
     end
-    local index=#aspects
-    for _,action in ipairs({"mend","revive"})do
+    local index=0
+    for _,action in ipairs(A.PetActionOrder)do
         local knownRanks={}
-        for _,candidate in ipairs(ns.HunterActionModel.PetSpells[action])do knownRanks[candidate]=known(candidate)end
+        for _,candidate in ipairs(ns.HunterActionModel.PetSpells[action])do knownRanks[candidate]=ns.Read.SpellKnown(candidate)end
         local id=ns.HunterActionModel.HighestKnown(ns.HunterActionModel.PetSpells[action],knownRanks)
         if id then
             wanted[action]=true
-            local slot=index;index=index+1
+            index=index+1
+            local offset=toolbar.pet.actions[index]
+            local parent=groups.pet
             if not buttons[action]or buttons[action].spellID~=id then
                 if buttons[action]then buttons[action]:Hide()end
-                buttons[action]=create(action,id,slot);buttons[action].spellID=id
+                buttons[action]=create(action,id,offset,parent);buttons[action].spellID=id
             end
-            place(buttons[action],slot);buttons[action]:SetShown(visible and not preview)
+            if buttons[action]:GetParent()~=parent then buttons[action]:SetParent(parent)end
+            place(buttons[action],offset,parent);buttons[action]:SetShown(visible and not preview)
         end
     end
     for key,button in pairs(buttons)do if not wanted[key]then button:Hide();buttons[key]=nil end end
+    for _,button in pairs(buttons)do
+        local state=activeAspect=="unknown" and "unknown" or activeAspect==button.aspectKey and "active" or "inactive"
+        UI.SetActionState(button.activeOutline,state)
+    end
+    ns.Bindings.Refresh()
     return true
 end
-function ns.HunterActions.Refresh(config,learned,anchor,isPreview)
-    root=anchor or root;visible=config and config.enabled==true;preview=isPreview==true
+function ns.HunterActions.Refresh(config,learned,groupFrames,layout,isPreview,active)
+    groups=groupFrames or groups
+    root=(groups.aspects and groups.aspects:GetParent())or root
+    visible=config and config.enabled==true;preview=isPreview==true
     if learned then aspects=learned end
+    if layout then toolbar=layout end
+    activeAspect=active
     ns.CombatQueue.Request("hunterActions",apply)
 end
-function ns.HunterActions.Relayout()ns.HunterActions.Refresh(ns.db.hunter,aspects,root,ns.Preview.IsEnabled())end
+function ns.HunterActions.Relayout()ns.HunterActions.Refresh(ns.db.hunter,aspects,groups,toolbar,ns.Preview.IsEnabled(),activeAspect)end
+function ns.HunterActions.SetActiveAspect(value)
+    activeAspect=value
+    for _,button in pairs(buttons)do
+        local state=value=="unknown" and "unknown" or value==button.aspectKey and "active" or "inactive"
+        UI.SetActionState(button.activeOutline,state)
+    end
+end
 function ns.HunterActions.SetPreview(value)
     preview=value==true;ns.CombatQueue.Request("hunterActions",apply)
 end

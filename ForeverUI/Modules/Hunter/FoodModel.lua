@@ -16,15 +16,15 @@ function ns.FoodModel.Filter(items)
     table.sort(entries,function(a,b)return a.id<b.id end)
     return entries
 end
-function ns.FoodModel.FeedPosition(geometry)
+function ns.FoodModel.FeedPosition(geometry,offset)
     for _,key in ipairs({"left","top","scale","parentScale","parentLeft","parentBottom"})do
         local value=geometry[key]
         if type(value)~="number"or value~=value or value==math.huge or value==-math.huge then return nil end
     end
     if geometry.scale<=0 or geometry.parentScale<=0 then return nil end
     local ratio=geometry.parentScale/geometry.scale
-    return {point="TOPLEFT",relativePoint="BOTTOMLEFT",x=geometry.left+232-geometry.parentLeft*ratio,
-        y=geometry.top-166-geometry.parentBottom*ratio}
+    return {point="TOPLEFT",relativePoint="BOTTOMLEFT",x=geometry.left+(offset or 232)-geometry.parentLeft*ratio,
+        y=geometry.top-111-geometry.parentBottom*ratio}
 end
 
 function ns.FoodModel.State(data)

@@ -42,3 +42,30 @@ test("out of combat changes apply immediately and clear stale requests",function
     combat=false;q.Request("layout",function()value=2 end)
     q.Flush();assert(value==2)
 end)
+
+test("a failed deferred callback is reported and does not block independent work", function()
+    local combat, attempts, applied = true, 0, 0
+    local errors = {}
+    local q = ns.CombatQueue.New(function() return combat end, function(key, message)
+        errors[#errors + 1] = {key, message}
+    end)
+    local function apply()
+        attempts = attempts + 1
+        if attempts == 1 then error("failed to update a frame") end
+        applied = applied + 1
+    end
+    for _, key in ipairs({"party", "bindings", "inventory"}) do q.Request(key, apply) end
+    combat = false
+    assert(q.Flush() == false)
+    assert(attempts == 3 and applied == 2 and #errors == 1)
+    assert(type(errors[1][1]) == "string" and errors[1][2]:find("failed to update a frame", 1, true))
+    assert(q.Flush() == true and attempts == 3)
+end)
+
+test("an immediate callback failure is reported without leaving a stale request", function()
+    local reported
+    local q = ns.CombatQueue.New(function() return false end, function(key) reported = key end)
+    assert(q.Request("frame", function() error("unavailable") end) == false)
+    assert(reported == "frame" and q.Flush() == true)
+    assert(q.Request("frame", function() end) == true)
+end)

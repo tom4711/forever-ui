@@ -11,6 +11,7 @@ test("fresh characters have usable independent module defaults", function()
     assert(c.hunter.scale == 1 and c.xp.scale == 1)
     assert(c.hunter.ammoWarning == 200 and c.xp.showAtCap == true)
     assert(c.locked == true and c.schemaVersion == 1)
+    assert(c.player.hideBlizzardAuras == false)
 end)
 
 test("class accent is opt-in and preserves a saved boolean", function()
@@ -20,9 +21,10 @@ test("class accent is opt-in and preserves a saved boolean", function()
 end)
 
 test("valid saved choices survive normalization", function()
-    local c = load({locked=false, hunter={enabled=false,scale=1.25,ammoWarning=0,
+    local c = load({locked=false, player={hideBlizzardAuras=true}, hunter={enabled=false,scale=1.25,ammoWarning=0,
         position={point="TOP",relativePoint="TOP",x=20,y=-40}}})
     assert(c.locked == false and c.hunter.enabled == false)
+    assert(c.player.hideBlizzardAuras == true)
     assert(c.hunter.scale == 1.25 and c.hunter.ammoWarning == 0)
     assert(c.hunter.position.point == "TOP" and c.hunter.position.y == -40)
     assert(c.xp.enabled == true)
@@ -188,4 +190,50 @@ test("appearance settings opt in separately and keep the full opacity range", fu
     config = load({actionBars = {enabled = "yes", opacity = 0 / 0}, inventory = {enabled = true, opacity = 5}})
     assert(config.actionBars.enabled == false and config.actionBars.opacity == defaults.actionBars.opacity)
     assert(config.inventory.enabled == true and config.inventory.opacity == defaults.inventory.opacity)
+end)
+
+test("merchant switches default off and preserve independent saved values", function()
+    local empty = load(nil)
+    assert(empty.comfort and not empty.comfort.autoRepair and not empty.comfort.sellJunk)
+    local chosen = load({comfort = {autoRepair = true, sellJunk = "true"}})
+    assert(chosen.comfort.autoRepair and chosen.comfort.sellJunk == false)
+    local sales = load({comfort = {autoRepair = false, sellJunk = true}})
+    assert(sales.comfort.autoRepair == false and sales.comfort.sellJunk)
+end)
+
+test("new layout settings and aura pins preserve safe defaults and saved choices", function()
+    local empty = load(nil)
+    assert(empty.layout.grid and empty.layout.snap and not empty.layout.attachClass)
+    assert(not empty.party.compact and empty.party.showPortrait and not empty.party.showMissingBuff)
+    assert(not empty.actionBars.hideEmpty and empty.target.showOwnAuraTimers)
+    assert(#empty.player.priorityAuras == 0 and empty.mage.dockPosition.x == 18)
+    local saved = load({
+        player = {priorityAuras = {1243, 1243, 0, 17, "1459", -1, math.huge, 2378, 589}},
+        layout = {grid = false, snap = false, attachClass = true},
+        mage = {dockPosition = {x = -39.5, y = -70}},
+        party = {compact = true, showPortrait = false, showMissingBuff = true},
+        target = {showOwnAuraTimers = false}, actionBars = {hideEmpty = true},
+    })
+    assert(table.concat(saved.player.priorityAuras, ",") == "1243,17,2378")
+    assert(not saved.layout.grid and not saved.layout.snap and saved.layout.attachClass)
+    assert(saved.mage.dockPosition.x == -39.5 and saved.mage.dockPosition.y == -70)
+    assert(saved.party.compact and not saved.party.showPortrait and saved.party.showMissingBuff)
+    assert(saved.actionBars.hideEmpty and not saved.target.showOwnAuraTimers)
+end)
+
+test("equipment item-level tooltips are an independent opt-in", function()
+    assert(load(nil).comfort.tooltipItemLevel == false)
+    assert(load({comfort = {tooltipItemLevel = true}}).comfort.tooltipItemLevel == true)
+    assert(load({comfort = {tooltipItemLevel = "true"}}).comfort.tooltipItemLevel == false)
+end)
+
+test("the minimap launcher menu is optional and follows saved preferences", function()
+    assert(not load(nil).minimapButton.collect)
+    assert(load({minimapButton = {angle = 180, collect = true}}).minimapButton.collect)
+    assert(not load({minimapButton = {collect = "true"}}).minimapButton.collect)
+end)
+
+test("the threat display defaults on and respects an opt-out", function()
+    assert(load(nil).target.showThreat)
+    assert(not load({target = {showThreat = false}}).target.showThreat)
 end)

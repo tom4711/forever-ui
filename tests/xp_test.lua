@@ -85,6 +85,54 @@ test("regaining access to XP does not infer gains during the inaccessible interv
 end)
 
 
+test("recent XP uses observed gains across a partial window and expires each gain after 30 minutes",function()
+    local m=model();local s=m.New(sample(10,10,100,0),0)
+    m.Observe(s,sample(10,20,100,60))
+    m.Observe(s,sample(10,30,100,60))
+    m.Observe(s,sample(10,30,100,61))
+    m.Observe(s,sample(10,50,100,120))
+    local partial=m.Summarize(s,120)
+    assert(partial.recentWindow==120 and partial.recentPerHour==1200 and partial.earned==40)
+    local beforeExpiry=m.Summarize(s,1859)
+    assert(beforeExpiry.recentWindow==1800 and beforeExpiry.recentPerHour==80)
+    local afterExpiry=m.Summarize(s,1860)
+    assert(afterExpiry.recentWindow==1800 and afterExpiry.recentPerHour==40 and afterExpiry.earned==40)
+    assert(m.Summarize(s,1920).recentPerHour==0)
+end)
+
+test("recent XP waits for a minute of reliable tracked history",function()
+    local m=model();local s=m.New(sample(10,90,100,0),0)
+    m.Observe(s,sample(11,10,150,30))
+    local early=m.Summarize(s,59)
+    assert(early.recentWindow==59 and early.recentPerHour==nil and early.earned==20)
+    assert(m.Summarize(s,60).recentPerHour==1200)
+    m.Observe(s,sample(11,nil,150,100))
+    local unavailable=m.Summarize(s,140)
+    assert(unavailable.recentWindow==nil and unavailable.recentPerHour==nil)
+    m.Observe(s,sample(11,30,150,180))
+    local reset=m.Summarize(s,180)
+    assert(reset.recentWindow==0 and reset.recentPerHour==nil and reset.measurementReset)
+    assert(m.Summarize(s,240).recentPerHour==0)
+end)
+
+test("recent XP retains at most one bucket per second within the rolling window",function()
+    local m=model();local s=m.New(sample(10,0,100000,0),0)
+    for at=1,3600 do m.Observe(s,sample(10,at,100000,at)) end
+    local restored=m.Restore(s,sample(10,3600,100000,3600),true)
+    assert(m.Summarize(restored,3600).recentPerHour==3600)
+    assert(#restored.recent.samples==1800,"expired samples remained in saved history")
+end)
+
+test("missing or invalid rolling history starts at reload without repurposing session gains",function()
+    local m=model()
+    for _,recent in ipairs({false,{startedAt=200,samples={{at=250,xp=23}}}}) do
+        local saved={version=1,startedAt=0,earned=30,reliable=true,last=sample(10,40,100,150),recent=recent or nil}
+        local restored=m.Restore(saved,sample(10,45,100,180),true)
+        local summary=m.Summarize(restored,240)
+        assert(summary.earned==35 and summary.recentWindow==60 and summary.recentPerHour==0)
+    end
+end)
+
 test("XP preview segments occupy separate consecutive ranges",function()
     local m=model();assert(m.Segments,"XP segments are not implemented")
     local r=m.Segments({current=12000,maximum=20000,questXP=2000,rested=4000,reliable=true})

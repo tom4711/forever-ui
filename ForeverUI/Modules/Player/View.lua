@@ -92,6 +92,20 @@ function ns.PlayerView.Create(name,preview)
     money:SetPoint("TOPLEFT", level, "BOTTOMLEFT", 0, -4)
     money:SetWidth(119)
     money:SetWordWrap(false)
+    local moneyHover
+    if not readOnly and ns.StatsView then
+        moneyHover = CreateFrame("Frame", nil, panel)
+        moneyHover:SetAllPoints(money)
+        moneyHover:SetMouseClickEnabled(false)
+        moneyHover:SetMouseMotionEnabled(true)
+        moneyHover:SetScript("OnEnter", ns.StatsView.ShowGoldTooltip)
+        local function hideGoldTooltip(self)
+            if GameTooltip:IsOwned(self) then GameTooltip:Hide() end
+        end
+        moneyHover:SetScript("OnLeave", hideGoldTooltip)
+        moneyHover:SetScript("OnHide", hideGoldTooltip)
+        moneyHover:Hide()
+    end
     local resting = UI.Text(panel, 10, T.restedText)
     resting:SetPoint("TOPLEFT", 90, -81)
     resting:SetText(L.REST_AREA)
@@ -209,13 +223,14 @@ function ns.PlayerView.Create(name,preview)
     local function attachNativeAuras(group, filter, dispelFilter)
         local ok, container = pcall(CreateFrame, "AuraContainer", nil, group.content, "CustomAuraContainerTemplate")
         if not ok or not container then return false end
-        local initialized = false
+        local initialized, priorityAvailable = false, false
         local configured = pcall(function()
             container:SetPoint("TOPLEFT", group.content, "TOPLEFT", 4, -2)
             container:SetFlowLayoutMaximumLineSize(iconsPerRow * rowHeight)
-            local function addGroup(key, auraFilter, dispellable, layoutIndex)
+            local function addGroup(key, auraFilter, dispellable, layoutIndex, candidateFilters)
                 container:AddAuraGroup(key, auraFilter, {
                     maxFrameCount = maxAuras,
+                    candidateFilters = candidateFilters,
                     layout = {
                         elementWidth = iconSize, elementHeight = iconSize,
                         elementSpacing = iconGap, lineSpacing = iconGap,
@@ -239,6 +254,9 @@ function ns.PlayerView.Create(name,preview)
             end
             if dispelFilter then addGroup("DispellableAuras", dispelFilter, true, 1) end
             addGroup("PlayerAuras", filter, false, 2)
+            if filter == "HELPFUL" and container.SetAuraGroupCandidateFilters then
+                priorityAvailable = pcall(addGroup, "PriorityAuras", filter, false, 1, {includeSpellIDs = {}})
+            end
             container:SetUnit("player")
         end)
         if not configured or not initialized then
@@ -248,6 +266,7 @@ function ns.PlayerView.Create(name,preview)
 
         -- Use a public, fixed-size scroll child so the layout does not read the native aura geometry.
         group.native = true
+        if priorityAvailable then group.priorityContainer = container end
         if dispelFilter then group.dispelContainer = container end
         group.pages = math.ceil(maxAuras / iconsPerRow)
         group.content:SetHeight(group.pages * rowHeight)
@@ -356,7 +375,25 @@ function ns.PlayerView.Create(name,preview)
     function view.RenderMoney(amount)
         local text = amount and amount >= 0
             and ns.Read.Call(C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString, amount, 10)
-        money:SetText(type(text) == "string" and text or "")
+        text = type(text) == "string" and text or ""
+        money:SetText(text)
+        if moneyHover then moneyHover:SetShown(text ~= "") end
+    end
+    function view.SetPriorityAuras(spellIDs)
+        local container = buffs.priorityContainer
+        if not container then return true end
+
+        -- Include a spell in the first group and exclude it from the regular group.
+        local setFilters = container.SetAuraGroupCandidateFilters
+        local ok = pcall(setFilters, container, "PriorityAuras", {includeSpellIDs = spellIDs or {}})
+        if not ok then return false end
+        ok = pcall(setFilters, container, "PlayerAuras", spellIDs and {excludeSpellIDs = spellIDs})
+        if not ok then
+            -- Keep normal buffs visible if the client declines a filter update.
+            pcall(setFilters, container, "PlayerAuras", nil)
+            pcall(setFilters, container, "PriorityAuras", {includeSpellIDs = {}})
+        end
+        return ok
     end
     function view.RefreshDispels()
         local container = debuffs.dispelContainer

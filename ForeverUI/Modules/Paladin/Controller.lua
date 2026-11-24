@@ -22,6 +22,26 @@ local function auraState(actions)
         return aura~=nil
     end)
 end
+local function spellName(id)
+    return R.Call(C_Spell and C_Spell.GetSpellName, id) or R.Call(GetSpellInfo, id)
+end
+function ns.Paladin.Seals()
+    local seals = {}
+    for _, id in ipairs(M.SealIDs) do
+        if R.SpellKnown(id) then
+            local name = spellName(id)
+            if type(name) == "string" and name ~= "" then seals[#seals + 1] = {id = id, name = name} end
+        end
+    end
+    return seals
+end
+local function judgementAction(config)
+    local id = M.JudgementSpellID
+    if not R.SpellKnown(id) then return end
+    local seal = M.SelectSeal(ns.Paladin.Seals(), config.judgementSeal)
+    local cast, reseal = M.JudgementMacros(spellName(id), seal and seal.name)
+    if cast then return {spellID = id, cast = cast, reseal = reseal} end
+end
 local function readState()
     local config=ns.db.paladin
     local learned={}
@@ -34,7 +54,8 @@ local function readState()
     if type(shieldQuery)~="function"then shieldQuery=IsEquippedItemType end
     local hasShield=boolean(shieldQuery,"Shields")
     local data={visible=config.enabled==true and not ns.Preview.IsEnabled(),shield=hasShield,activeAura=auraState(actions),
-        shieldState=hasShield==nil and "unknown"or hasShield and "shield"or "twohand"}
+        shieldState=hasShield==nil and "unknown"or hasShield and "shield"or "twohand",
+        judgement=judgementAction(config)}
     return config,actions,macro,data
 end
 function ns.Paladin.Refresh()

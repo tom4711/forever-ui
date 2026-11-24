@@ -15,6 +15,7 @@ local catalog = {
         {"PaladinProtection", "BIND_PROTECTION_SELF"},
         {"PaladinFreedom", "BIND_FREEDOM_SELF"},
         {"PaladinWeapons", "WEAPON_SET"},
+        {"PaladinJudgement", "PALADIN_JUDGEMENT"},
         {"PaladinMight", "BIND_MIGHT"},
         {"PaladinWisdom", "BIND_WISDOM"},
         {"PaladinKings", "BIND_KINGS"},

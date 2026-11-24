@@ -8,7 +8,9 @@ local stockBars = {
     "MultiBarRight", "MultiBarLeft", "MultiBar5", "MultiBar6", "MultiBar7",
 }
 local trays, rims = {}, {}
+local hiddenAlphas = {}
 local events
+local hideEmpty, slotsHidden, dragGridShown
 local darkEdge = {0.055, 0.035, 0.017, 0.95}
 
 local function edge(frame, color, first, last, x, y, horizontal, thickness, opacity)
@@ -52,9 +54,66 @@ local function createRim(button)
     return rim
 end
 
+local function setRegionHidden(region, hidden)
+    local previous = hiddenAlphas[region]
+    if hidden then
+        if previous then return end
+        local alpha = ns.Read.Number(region:GetAlpha())
+        if alpha and alpha > 0 then
+            hiddenAlphas[region] = alpha
+            region:SetAlpha(0)
+        end
+    elseif previous then
+        if ns.Read.Number(region:GetAlpha()) == 0 then
+            region:SetAlpha(previous)
+        end
+        hiddenAlphas[region] = nil
+    end
+end
+
+local function updateButtons(bar)
+    if not slotsHidden then return end
+    -- The native button knows which action belongs to the current page. Alpha leaves the
+    -- secure click, drop target, and grid position under Blizzard's control.
+    for _, button in ipairs(bar.actionButtons) do
+        local occupied = ns.Read.Boolean(ns.Read.Call(button.HasAction, button))
+        setRegionHidden(button, occupied == false)
+    end
+end
+
+local function hideDividers(pool)
+    if not pool then return end
+    for divider in pool:EnumerateActive() do
+        setRegionHidden(divider, true)
+    end
+end
+
+local function updateDividers(bar)
+    if not slotsHidden then return end
+    hideDividers(bar.HorizontalDividersPool)
+    hideDividers(bar.VerticalDividersPool)
+end
+
+local function refreshSlots()
+    local editMode = EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive()
+    local keybindMode = KeybindFrames_InQuickKeybindMode and KeybindFrames_InQuickKeybindMode()
+    slotsHidden = hideEmpty and not (dragGridShown or editMode or keybindMode)
+    if not slotsHidden then
+        for region in pairs(hiddenAlphas) do setRegionHidden(region, false) end
+    end
+
+    for bar, tray in pairs(trays) do
+        tray.frame:SetAlpha(slotsHidden and 0 or 1)
+        updateButtons(bar)
+        updateDividers(bar)
+    end
+end
+
 local function applyAppearance()
     local settings = ns.db and ns.db.actionBars
+    hideEmpty = settings and settings.enabled == true and settings.hideEmpty == true
     if not settings or settings.enabled ~= true then
+        refreshSlots()
         for _, tray in pairs(trays) do
             tray.frame:Hide()
             if tray.art and tray.artAlpha then
@@ -72,7 +131,16 @@ local function applyAppearance()
     for _, name in ipairs(stockBars) do
         local bar = _G[name]
         if bar and bar.actionButtons and #bar.actionButtons > 0 then
-            local tray = trays[bar] or createTray(bar)
+            local tray = trays[bar]
+            if not tray then
+                tray = createTray(bar)
+                if hooksecurefunc and bar.UpdateShownButtons then
+                    hooksecurefunc(bar, "UpdateShownButtons", updateButtons)
+                end
+                if hooksecurefunc and bar.UpdateDividers then
+                    hooksecurefunc(bar, "UpdateDividers", updateDividers)
+                end
+            end
             -- Leave Edit Mode visibility and the native page controls in charge.
             if tray.art and not tray.artAlpha then
                 local alpha = ns.Read.Number(tray.art:GetAlpha())
@@ -89,6 +157,7 @@ local function applyAppearance()
             end
         end
     end
+    refreshSlots()
 end
 
 function ActionBars.Refresh()
@@ -100,10 +169,24 @@ function ActionBars.Init()
     events = CreateFrame("Frame")
     events:RegisterEvent("PLAYER_ENTERING_WORLD")
     events:RegisterEvent("ADDON_LOADED")
+    events:RegisterEvent("ACTIONBAR_SHOWGRID")
+    events:RegisterEvent("ACTIONBAR_HIDEGRID")
     events:SetScript("OnEvent", function(_, event, addon)
-        if event == "PLAYER_ENTERING_WORLD" or addon == "Blizzard_ActionBar" then
+        if event == "ACTIONBAR_SHOWGRID" or event == "ACTIONBAR_HIDEGRID" then
+            dragGridShown = event == "ACTIONBAR_SHOWGRID"
+            if hideEmpty then refreshSlots() end
+        elseif event == "PLAYER_ENTERING_WORLD" or addon == "Blizzard_ActionBar" then
             ActionBars.Refresh()
         end
     end)
+    if EventRegistry then
+        local function onModeChanged()
+            if hideEmpty then refreshSlots() end
+        end
+        EventRegistry:RegisterCallback("EditMode.Enter", onModeChanged, ActionBars)
+        EventRegistry:RegisterCallback("EditMode.Exit", onModeChanged, ActionBars)
+        EventRegistry:RegisterCallback("QuickKeybindFrame.QuickKeybindModeEnabled", onModeChanged, ActionBars)
+        EventRegistry:RegisterCallback("QuickKeybindFrame.QuickKeybindModeDisabled", onModeChanged, ActionBars)
+    end
     ActionBars.Refresh()
 end

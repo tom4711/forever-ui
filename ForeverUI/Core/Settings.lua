@@ -56,6 +56,18 @@ local function flightSettings(value)
     for i=1,math.min(500,#keys)do local route=keys[i];routes[route]=source[route]end
     return {routes=routes,secondsPerUnit=scale,importedForeverXPBar=value.importedForeverXPBar==true}
 end
+function ns.Settings.LoadPriorityAuras(value)
+    value = tableOrEmpty(value)
+    local selected, seen = {}, {}
+    for index = 1, 8 do
+        local spell = value[index]
+        if finite(spell) and spell > 0 and spell <= 2147483647 and spell == math.floor(spell) and not seen[spell] then
+            selected[#selected + 1], seen[spell] = spell, true
+        end
+    end
+    return selected
+end
+
 function ns.Settings.Load(saved)
     saved = tableOrEmpty(saved)
     local hunter, xp = tableOrEmpty(saved.hunter), tableOrEmpty(saved.xp)
@@ -64,6 +76,11 @@ function ns.Settings.Load(saved)
     local player=tableOrEmpty(saved.player)
     local result = {schemaVersion=1,locked=boolean(saved.locked,true),player=module(player,-70,{point="TOPLEFT",relativePoint="TOPLEFT",x=28,y=-28}),hunter=module(hunter,-70),xp=module(xp,-255),
         paladin=module(paladin,-400),warlock=module(warlock,-540),priest=module(priest,-400)}
+    result.player.hideBlizzardAuras = boolean(player.hideBlizzardAuras, false)
+    result.player.priorityAuras = ns.Settings.LoadPriorityAuras(player.priorityAuras)
+    local layout = tableOrEmpty(saved.layout)
+    result.layout = {grid = boolean(layout.grid, true), snap = boolean(layout.snap, true),
+        attachClass = boolean(layout.attachClass, false)}
     local mage, shaman, druid = tableOrEmpty(saved.mage), tableOrEmpty(saved.shaman), tableOrEmpty(saved.druid)
     result.mage = module(mage, -70)
     result.mage.buffGroup = actionGroup(mage.buffGroup, 14, -39)
@@ -86,25 +103,40 @@ function ns.Settings.Load(saved)
     local target = tableOrEmpty(saved.target)
     result.target = module(target, -70, {point="TOPLEFT",relativePoint="TOPLEFT",x=434,y=-28})
     result.target.enabled = boolean(target.enabled, false)
+    result.target.showOwnAuraTimers = boolean(target.showOwnAuraTimers, true)
+    result.target.showThreat = boolean(target.showThreat, true)
     local party = tableOrEmpty(saved.party)
     result.party = module(party, -360, {point="TOPLEFT",relativePoint="TOPLEFT",x=28,y=-362})
     result.party.enabled = boolean(party.enabled, false)
     result.party.replaceBlizzard = boolean(party.replaceBlizzard, false)
+    result.party.compact = boolean(party.compact, false)
+    result.party.showPortrait = boolean(party.showPortrait, true)
+    result.party.showMissingBuff = boolean(party.showMissingBuff, false)
     result.companion = module(saved.companion, -284, {point="TOPLEFT",relativePoint="TOPLEFT",x=28,y=-284})
     result.castBar = module(saved.castBar, 72)
     result.classAccent = boolean(saved.classAccent, false)
+    result.raidFrameStyle = boolean(saved.raidFrameStyle, false)
+    result.enemyFrameStyle = boolean(saved.enemyFrameStyle, false)
     result.actionBars = appearance(saved.actionBars, 0.25)
+    result.actionBars.hideEmpty = boolean(tableOrEmpty(saved.actionBars).hideEmpty, false)
     result.inventory = appearance(saved.inventory, 0.92)
+    local comfort = tableOrEmpty(saved.comfort)
+    result.comfort = {
+        autoRepair = boolean(comfort.autoRepair, false),
+        sellJunk = boolean(comfort.sellJunk, false),
+        tooltipItemLevel = boolean(comfort.tooltipItemLevel, false),
+    }
     result.bindings = ns.Bindings and ns.Bindings.Load(saved.bindings) or {}
     local minimapButton=tableOrEmpty(saved.minimapButton)
     local angle=minimapButton.angle
     if not finite(angle) or angle < 0 or angle >= 360 then angle=225 end
-    result.minimapButton={angle=angle}
+    result.minimapButton={angle=angle,collect=boolean(minimapButton.collect,false)}
     local sets=tableOrEmpty(paladin.weaponSets)
     local function equipmentSetId(value)
         return finite(value) and value>=0 and value==math.floor(value) and value or nil
     end
     result.paladin.weaponSets={shield=equipmentSetId(sets.shield),twoHand=equipmentSetId(sets.twoHand)}
+    result.paladin.judgementSeal = equipmentSetId(paladin.judgementSeal)
     result.hunter.aspectGroup=actionGroup(hunter.aspectGroup,16,-72)
     result.hunter.petGroup=actionGroup(hunter.petGroup,280,-72)
     if not hunter.compactLayout then
@@ -140,6 +172,8 @@ function ns.Settings.Load(saved)
     result.xp.questDisplay=xp.questDisplay=="percent" and "percent" or "xp"
     result.xp.restedDisplay=xp.restedDisplay=="percent" and "percent" or "xp"
     result.xp.flight=flightSettings(xp.flight)
+    result.goldStats = ns.GoldStats and ns.GoldStats.Load(saved.goldStats)
+    result.levelStats = ns.LevelStats and ns.LevelStats.Load(saved.levelStats)
     local session=saved.xpSession
     if type(session)=="table"then
         local copy={}
@@ -151,7 +185,12 @@ function ns.Settings.Load(saved)
                 if finite(session.last[key])then copy.last[key]=session.last[key]end
             end
         end
+        copy.recent = ns.XPModel and ns.XPModel.LoadRecent and ns.XPModel.LoadRecent(session.recent)
         result.xpSession=copy
+    end
+    for _, key in ipairs({"hunter", "paladin", "warlock", "priest", "mage", "shaman", "druid", "rogue", "warrior"}) do
+        local dock = tableOrEmpty(tableOrEmpty(saved[key]).dockPosition)
+        result[key].dockPosition = {x = finite(dock.x) and dock.x or 18, y = finite(dock.y) and dock.y or 0}
     end
     return result
 end

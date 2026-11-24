@@ -89,6 +89,19 @@ test("class preview mode is fixed at view creation and live actions stay secure"
         paladin.RenderActions({visible = true}, {aura}, loadout, true)
         paladinPreview.RenderActions({visible = true}, {aura}, loadout, false)
         assertSpellPreview(frames, paladin, paladinPreview, 465)
+        local spell = ns.PaladinModel.JudgementSpellID
+        local cast, reseal = ns.PaladinModel.JudgementMacros("Judgement", "Seal of Righteousness")
+        local data = {visible = true, judgement = {spellID = spell, cast = cast, reseal = reseal}}
+        paladin.RenderActions(data, {aura}, loadout, false)
+        paladinPreview.RenderActions(data, {aura}, loadout, true)
+        local button = assert(findSpell(frames, paladin.frame, spell))
+        local sample = assert(findSpell(frames, paladinPreview.frame, spell))
+        assert(button.attributes.type1 == "macro" and button.attributes.macrotext1 == cast)
+        assert(button.attributes.type2 == "macro" and button.attributes.macrotext2 == reseal)
+        assert(sample.template == nil and next(sample.attributes) == nil)
+        data.judgement.reseal = nil
+        paladin.RenderActions(data, {aura}, loadout, false)
+        assert(button.attributes.type2 == nil and button.attributes.macrotext2 == nil)
         for _, frame in ipairs(frames) do
             if frame.kind == "Button" and frame.parent and frame.parent.parent == paladinPreview.frame then
                 assert(frame.template == nil and next(frame.attributes) == nil)

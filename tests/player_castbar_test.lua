@@ -20,6 +20,8 @@ local function widget(parent)
         if self.scripts.OnHide then self.scripts.OnHide(self) end
     end
     function frame:SetShown(value) if value then self:Show() else self:Hide() end end
+    function frame:GetParent() return self.parent end
+    function frame:SetParent(value) self.parent = value end
     function frame:SetAlpha(value) self.alpha = value end
     function frame:GetAlpha() return self.alpha end
     function frame:CreateTexture() return widget() end
@@ -36,8 +38,10 @@ local function widget(parent)
     end})
 end
 
-local function withPlayer(body)
+local function withPlayer(body, auraAPI, secret)
     local stock = widget()
+    local uiParent = widget()
+    local nativeBuffs, nativeDebuffs = widget(uiParent), widget(uiParent)
     stock.click, stock.motion = true, true
     stock.PlayerFrameContainer = widget(stock)
     stock.PlayerFrameContent = widget(stock)
@@ -59,11 +63,17 @@ local function withPlayer(body)
     }
     withGlobals({
         PlayerFrame = stock,
+        UIParent = uiParent,
+        BuffFrame = nativeBuffs,
+        DebuffFrame = nativeDebuffs,
         PetFrame = pet,
         PlayerCastingBarFrame = stockCast,
         InCombatLockdown = function() return inCombat == true end,
         GetMoney = function() return wallet end,
-        CreateFrame = function()
+        C_UnitAuras = auraAPI or false,
+        issecretvalue = secret or false,
+        CreateFrame = function(_, _, parent)
+            if parent then return widget(parent) end
             events = widget()
             function events:RegisterEvent(event) registered[event] = true end
             return events
@@ -81,6 +91,15 @@ local function withPlayer(body)
             wallet = value
             assert(registered.PLAYER_MONEY, "player frame must listen for money changes")
             events.scripts.OnEvent(events, "PLAYER_MONEY")
+        end, function(value)
+            ns.db.player.hideBlizzardAuras = value
+            ns.Player.Refresh()
+        end, function(ids)
+            ns.db.player.priorityAuras = ids
+            ns.Player.Refresh()
+        end, function()
+            assert(registered.UNIT_AURA, "fallback auras must update on aura changes")
+            events.scripts.OnEvent(events, "UNIT_AURA", "player")
         end)
     end)
 end
@@ -127,6 +146,34 @@ test("opting out leaves stock player visibility under native or external ownersh
     end)
 end)
 
+test("stock player auras can be hidden reversibly while the live replacement is enabled", function()
+    withPlayer(function(player, _, _, _, _, preview, combat, _, _, hideAuras)
+        local buffs, debuffs = BuffFrame, DebuffFrame
+        local stockParent = buffs:GetParent()
+        hideAuras(true)
+        player.Init()
+        assert(not buffs:IsVisible() and not debuffs:IsVisible(), "saved option applies at login")
+        buffs:Show()
+        assert(not buffs:IsVisible(), "stock visibility updates must not bring back duplicate auras")
+
+        debuffs:Hide()
+        combat(true)
+        hideAuras(false)
+        assert(not buffs:IsVisible(), "out-of-combat parent changes must be deferred")
+        combat(false)
+        assert(buffs:IsVisible() and buffs:GetParent() == stockParent)
+        assert(not debuffs:IsShown() and debuffs:GetParent() == stockParent)
+
+        debuffs:Show()
+        hideAuras(true)
+        assert(not buffs:IsVisible() and not debuffs:IsVisible())
+        player.SetReplacementEnabled(false)
+        assert(buffs:IsVisible() and debuffs:IsVisible())
+        preview(true)
+        assert(buffs:IsVisible() and debuffs:IsVisible(), "preview alone must not hide stock auras")
+    end)
+end)
+
 test("player money updates at login and on wallet changes", function()
     withPlayer(function(player, _, _, _, data, _, _, money, changeMoney)
         player.Init()
@@ -138,6 +185,89 @@ test("player money updates at login and on wallet changes", function()
         assert(money() == 0, "a zero balance is valid")
         changeMoney(nil)
         assert(money() == nil, "an unreadable balance should clear the display")
+    end)
+end)
+
+test("player fallback moves selected buffs forward and refreshes them in combat", function()
+    local protected = {}
+    local auras = {
+        {name = "Routine", spellId = 30, sourceUnit = "player"},
+        {name = "Shared from an ally", spellId = 40, sourceUnit = "party1"},
+        {name = "Own aspect", spellId = 40, isFromPlayerOrPlayerPet = true},
+        {name = "Private ID", spellId = protected, sourceUnit = "player"},
+    }
+    withPlayer(function(player, _, _, _, data, _, combat, _, _, _, priorities, changed)
+        local ids = {40}
+        priorities(ids)
+        player.Init()
+        assert(data().buffs[1].name == "Shared from an ally", "the selected ally buff belongs in the first slot")
+        assert(data().buffs[2].name == "Own aspect" and data().buffs[3].name == "Routine")
+        assert(data().buffs[4].name == "Private ID")
+        combat(true)
+        table.remove(auras, 2)
+        table.remove(auras, 2)
+        changed()
+        assert(#data().buffs == 2 and data().buffs[1].name == "Routine", "a removed buff must leave the priority slot")
+        table.insert(auras, 2, {name = "Own aspect", spellId = 40, sourceUnit = "player"})
+        changed()
+        assert(data().buffs[1].name == "Own aspect")
+        ids[1] = nil
+        player.Refresh()
+        assert(data().buffs[1].name == "Routine" and data().buffs[2].name == "Own aspect")
+    end, {GetAuraDataByIndex = function(_, index, filter)
+        return filter == "HELPFUL" and auras[index] or nil
+    end}, function(value) return value == protected end)
+end)
+
+test("player native priorities share the existing buff flow and preserve unpinned auras", function()
+    local buffContainer
+    local ns = {
+        L = {}, Theme = {good = {1, 1, 1}, teal = {1, 1, 1}},
+        UI = {
+            CreatePanel = widget, CreateIconButton = function(parent)
+                local icon = widget(parent)
+                icon.icon = widget(icon)
+                return icon
+            end,
+            Text = widget, Rect = widget, DecorateGroup = noop, DecorateActionButton = noop,
+            ActionOutline = function() return {} end, SetActionState = noop, MakeMovable = noop, Tooltip = noop,
+        },
+    }
+    withGlobals({
+        UIParent = widget(),
+        CreateFrame = function(kind, _, parent)
+            local frame = widget(parent)
+            function frame:GetFrameLevel() return 1 end
+            if kind == "AuraContainer" then
+                frame.groups = {}
+                function frame:AddAuraGroup(key, filter, options)
+                    options.initializeFrame(CreateFrame("AuraButton", nil, frame))
+                    self.groups[key] = {filter = filter, options = options}
+                    if filter == "HELPFUL" then buffContainer = self end
+                end
+                function frame:SetAuraGroupCandidateFilters(key, filters)
+                    self.groups[key].options.candidateFilters = filters
+                end
+            end
+            return frame
+        end,
+    }, function()
+        loadAddon("Modules/Player/View.lua", ns)
+        local view = ns.PlayerView.Create("PriorityPlayer")
+        assert(view.nativeBuffs and buffContainer)
+        local group, priorityGroup
+        for _, nativeGroup in pairs(buffContainer.groups) do
+            if nativeGroup.options.candidateFilters then priorityGroup = nativeGroup else group = nativeGroup end
+        end
+        assert(group and priorityGroup and priorityGroup.options.layout.layoutIndex < group.options.layout.layoutIndex)
+        assert(priorityGroup.filter == "HELPFUL")
+        assert(view.SetPriorityAuras({[40] = true}))
+        assert(priorityGroup.options.candidateFilters.includeSpellIDs[40] == true)
+        local excluded = group.options.candidateFilters.excludeSpellIDs
+        assert(excluded[40] and not excluded[30])
+        assert(view.SetPriorityAuras(nil))
+        assert(next(priorityGroup.options.candidateFilters.includeSpellIDs) == nil)
+        assert(not group.options.candidateFilters)
     end)
 end)
 

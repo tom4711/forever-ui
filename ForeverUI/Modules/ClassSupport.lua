@@ -3,10 +3,19 @@ local UI, T, R = ns.UI, ns.Theme, ns.Read
 local S = {}
 ns.ClassSupport = S
 
+local groupBuffRanks = {
+    MAGE = {1459, 1460, 1461, 10156, 10157},
+    DRUID = {1126, 5232, 6756, 5234, 8907, 9884, 9885},
+}
+
+function S.GroupBuffRanks(classToken)
+    return groupBuffRanks[classToken]
+end
+
 local classes = {
     MAGE = {module = "mage", label = "MAGE", groups = {
         {key = "buffGroup", label = "FRIENDLY_BUFFS", spells = {
-            {friendlyBinding = "MageIntellect", ranks = {1459, 1460, 1461, 10156, 10157}},
+            {friendlyBinding = "MageIntellect", ranks = groupBuffRanks.MAGE},
         }},
         {key = "utilityGroup", label = "CLASS_UTILITY", spells = {
             {key = "frostArmor", self = true, ranks = {168, 7300, 7301, 7302, 7320, 10219, 10220}},
@@ -49,7 +58,7 @@ local classes = {
     }},
     DRUID = {module = "druid", label = "DRUID", groups = {
         {key = "buffGroup", label = "FRIENDLY_BUFFS", spells = {
-            {friendlyBinding = "DruidMark", ranks = {1126, 5232, 6756, 5234, 8907, 9884, 9885}},
+            {friendlyBinding = "DruidMark", ranks = groupBuffRanks.DRUID},
             {friendlyBinding = "DruidThorns", ranks = {467, 782, 1075, 8914, 9756, 9910}},
         }},
     }},

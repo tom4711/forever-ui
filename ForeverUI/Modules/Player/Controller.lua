@@ -3,8 +3,11 @@ local R=ns.Read
 ns.Player={}
 local view,events
 local buffs,debuffs
+local priorityKey, prioritySpells
 local replacementApplied=false
 local stockAppearance
+local hiddenAuraParent
+local stockAuraParents = {}
 
 local function directValue(fn,...)
     if type(fn)~="function"then return nil end
@@ -30,7 +33,8 @@ local function field(data,key)
 end
 
 local function collectAuras(filter)
-    local result = {}
+    local result, prioritized = {}, {}
+    local lookup = filter == "HELPFUL" and prioritySpells
     local api = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
     if type(api) ~= "function" then return result end
     for index = 1, 40 do
@@ -55,7 +59,8 @@ local function collectAuras(filter)
             if auraInstanceID then
                 durationObject = directValue(C_UnitAuras.GetAuraDuration, "player", auraInstanceID)
             end
-            result[#result + 1] = {
+            local entries = lookup and lookup[spellID] and prioritized or result
+            entries[#entries + 1] = {
                 spellID = spellID,
                 icon = (type(icon) == "number" or type(icon) == "string") and icon or nil,
                 name = type(name) == "string" and name or nil,
@@ -69,7 +74,22 @@ local function collectAuras(filter)
             }
         end
     end
-    return result
+    if #prioritized == 0 then return result end
+    for _, entry in ipairs(result) do prioritized[#prioritized + 1] = entry end
+    return prioritized
+end
+
+local function refreshPriorities(ids)
+    local key = ids and table.concat(ids, ",") or ""
+    if key == priorityKey then return end
+    local lookup
+    if key ~= "" then
+        lookup = {}
+        for _, spellID in ipairs(ids) do lookup[spellID] = true end
+    end
+    if view.SetPriorityAuras and not view.SetPriorityAuras(lookup) then return end
+    priorityKey, prioritySpells = key, lookup
+    buffs = nil
 end
 
 local function applyVisibility()
@@ -104,6 +124,32 @@ local function applyVisibility()
     replacementApplied = enable
 end
 
+local function syncStockAuras(hide)
+    if InCombatLockdown() then return end
+
+    if hide then
+        for _, frame in pairs({BuffFrame, DebuffFrame}) do
+            if not hiddenAuraParent then
+                hiddenAuraParent = CreateFrame("Frame", nil, UIParent)
+                hiddenAuraParent:SetAllPoints(UIParent)
+                hiddenAuraParent:Hide()
+            end
+
+            -- Let Blizzard continue to update each frame's own shown state.
+            local originalParent = frame:GetParent()
+            if originalParent ~= hiddenAuraParent then
+                pcall(frame.SetParent, frame, hiddenAuraParent)
+                if frame:GetParent() == hiddenAuraParent then stockAuraParents[frame] = originalParent end
+            end
+        end
+    else
+        for frame, parent in pairs(stockAuraParents) do
+            if frame:GetParent() == hiddenAuraParent then pcall(frame.SetParent, frame, parent) end
+            if frame:GetParent() ~= hiddenAuraParent then stockAuraParents[frame] = nil end
+        end
+    end
+end
+
 function ns.Player.SetReplacementEnabled(enabled)
     if not ns.db or not ns.db.player then return false end
     ns.db.player.enabled=enabled==true
@@ -114,6 +160,8 @@ end
 function ns.Player.Refresh()
     if not view or not ns.db or not ns.db.player then return end
     applyVisibility()
+    refreshPriorities(ns.db.player.priorityAuras)
+    syncStockAuras(replacementApplied and ns.db.player.enabled == true and ns.db.player.hideBlizzardAuras == true)
     local name=R.Call(UnitName,"player")
     local level=R.Number(R.Call(UnitLevel,"player"))
     local preview=ns.Preview and ns.Preview.IsEnabled and ns.Preview.IsEnabled()
@@ -140,7 +188,8 @@ function ns.Player.Init()
     view=ns.PlayerView.Create("ForeverUI_Player")
     events=CreateFrame("Frame")
     for _,event in ipairs({"PLAYER_ENTERING_WORLD","PLAYER_LEVEL_UP","PLAYER_UPDATE_RESTING","PLAYER_MONEY","UNIT_HEALTH","UNIT_MAXHEALTH",
-        "UNIT_POWER_UPDATE","UNIT_MAXPOWER","UNIT_DISPLAYPOWER","UNIT_AURA","SPELLS_CHANGED","PLAYER_REGEN_ENABLED"})do
+        "UNIT_POWER_UPDATE","UNIT_MAXPOWER","UNIT_DISPLAYPOWER","UNIT_AURA","SPELLS_CHANGED",
+        "PLAYER_REGEN_DISABLED","PLAYER_REGEN_ENABLED"})do
         events:RegisterEvent(event)
     end
     if view.nativeBuffs and view.nativeDebuffs then events:UnregisterEvent("UNIT_AURA") end
@@ -154,7 +203,7 @@ function ns.Player.Init()
             event=="UNIT_MAXPOWER"or event=="UNIT_DISPLAYPOWER"or event=="UNIT_AURA")and unit~="player"then
             return
         end
-        if event=="UNIT_AURA" or event=="PLAYER_ENTERING_WORLD" or event=="PLAYER_REGEN_ENABLED" then
+        if event=="UNIT_AURA" or event=="PLAYER_ENTERING_WORLD" or event=="PLAYER_REGEN_DISABLED" or event=="PLAYER_REGEN_ENABLED" then
             buffs,debuffs=nil,nil
         elseif event=="SPELLS_CHANGED" then
             debuffs=nil

@@ -11,19 +11,72 @@ local function valid(s)
     if s.atCap==true then return true end
     return finite(s.current) and finite(s.maximum) and s.maximum>0 and s.current>=0 and s.current<=s.maximum
 end
+local RECENT_SECONDS=30*60
+local MIN_RECENT_SECONDS=60
+
+local function newRecent(at)
+    return {startedAt=math.floor(at),samples={}}
+end
+
+function M.LoadRecent(value)
+    if type(value)~="table" or not finite(value.startedAt) or value.startedAt~=math.floor(value.startedAt)
+        or type(value.samples)~="table" or #value.samples>RECENT_SECONDS then return nil end
+
+    local recent=newRecent(value.startedAt)
+    local previousAt,total=nil,0
+    for index=1,#value.samples do
+        local sample=value.samples[index]
+        if type(sample)~="table" or not finite(sample.at) or sample.at~=math.floor(sample.at)
+            or sample.at<recent.startedAt or (previousAt and sample.at<=previousAt)
+            or not finite(sample.xp) or sample.xp<=0 then return nil end
+        previousAt=sample.at
+        total=total+sample.xp
+        if not finite(total) then return nil end
+        recent.samples[index]={at=sample.at,xp=sample.xp}
+    end
+    return recent,total
+end
+
+local function recordRecent(recent,at,delta)
+    -- The session clock has second resolution. Coalesce gains in the same second.
+    at=math.floor(at)
+    local samples=recent.samples
+    local first=1
+    while samples[first] and samples[first].at<=at-RECENT_SECONDS do first=first+1 end
+    if first>1 then
+        local retained={}
+        for index=first,#samples do retained[#retained+1]=samples[index] end
+        recent.samples=retained
+        samples=retained
+    end
+    if delta<=0 then return end
+    local last=samples[#samples]
+    if last and last.at==at then
+        last.xp=last.xp+delta
+    else
+        samples[#samples+1]={at=at,xp=delta}
+    end
+end
+
 function M.New(snapshot,startedAt)
     snapshot=copy(snapshot)
     local start=finite(startedAt) and startedAt or snapshot.at
-    return {version=1,startedAt=start,earned=0,last=snapshot,reliable=valid(snapshot),measurementReset=false}
+    local reliable=valid(snapshot)
+    return {version=1,startedAt=start,earned=0,last=snapshot,reliable=reliable,measurementReset=false,
+        recent=reliable and newRecent(snapshot.at) or nil}
 end
 local function reset(state,snapshot)
     state.startedAt=snapshot.at;state.earned=0;state.last=copy(snapshot)
     state.reliable=true;state.measurementReset=true
+    state.recent=newRecent(snapshot.at)
     return state
 end
 function M.Observe(state,snapshot)
     snapshot=copy(snapshot)
-    if not valid(snapshot)then state.last=snapshot;state.reliable=false;return state end
+    if not valid(snapshot)then
+        state.last=snapshot;state.reliable=false;state.recent=nil
+        return state
+    end
     local previous=state.last
     if not state.reliable or not valid(previous) or snapshot.at<previous.at then return reset(state,snapshot)end
     local delta
@@ -35,8 +88,33 @@ function M.Observe(state,snapshot)
     end
     if not finite(delta)or delta<0 then return reset(state,snapshot)end
     state.earned=state.earned+delta;state.last=snapshot;state.reliable=true
+    if state.recent then
+        recordRecent(state.recent,snapshot.at,delta)
+    else
+        -- Older sessions have no reliable rolling history before this observation.
+        state.recent=newRecent(snapshot.at)
+    end
     return state
 end
+
+local function summarizeRecent(state,now,result)
+    local recent=state.recent
+    if not recent or not finite(now) or now<state.last.at then return end
+    local at=math.floor(now)
+    local window=math.min(RECENT_SECONDS,at-recent.startedAt)
+    result.recentWindow=window
+    if window<MIN_RECENT_SECONDS then return end
+
+    local earned=0
+    for index=#recent.samples,1,-1 do
+        local sample=recent.samples[index]
+        if sample.at<=at-RECENT_SECONDS then break end
+        earned=earned+sample.xp
+    end
+    local rate=earned/window*3600
+    if finite(rate) then result.recentPerHour=rate end
+end
+
 function M.Summarize(state,now)
     local s=state.last or {}
     local elapsed=finite(now)and finite(state.startedAt)and math.max(0,now-state.startedAt)or nil
@@ -44,6 +122,7 @@ function M.Summarize(state,now)
         elapsed=elapsed,reliable=state.reliable==true,measurementReset=state.measurementReset==true}
     if not state.reliable then return result end
     result.earned=state.earned
+    summarizeRecent(state,now,result)
     if elapsed and elapsed>0 then result.perHour=state.earned*3600/elapsed end
     if s.atCap then result.percent=100;result.remaining=0;result.restedEnd=0;return result end
     result.percent=s.current/s.maximum*100
@@ -56,8 +135,14 @@ function M.Restore(saved,snapshot,reloaded)
     local at=type(snapshot)=="table"and snapshot.at
     if reloaded and type(saved)=="table" and saved.version==1 and finite(saved.startedAt) and finite(saved.earned) and saved.earned>=0
         and finite(at) and saved.startedAt<=at and valid(saved.last) and saved.last.at<=at then
+        local recent,total=M.LoadRecent(saved.recent)
+        if recent then
+            local latest=recent.samples[#recent.samples]
+            if recent.startedAt<math.floor(saved.startedAt) or recent.startedAt>saved.last.at
+                or (latest and latest.at>saved.last.at) or total>saved.earned then recent=nil end
+        end
         local state={version=1,startedAt=saved.startedAt,earned=saved.earned,last=copy(saved.last),
-            reliable=saved.reliable==true,measurementReset=saved.measurementReset==true}
+            reliable=saved.reliable==true,measurementReset=saved.measurementReset==true,recent=recent}
         return M.Observe(state,snapshot)
     end
     return M.New(snapshot,at)

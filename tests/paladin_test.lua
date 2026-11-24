@@ -36,3 +36,10 @@ test("greater blessings keep separate buttons without replacing reagent-free ble
     assert(actions[1].key=="might" and actions[1].spellID==19838)
     assert(actions[2].key=="greaterMight" and actions[2].spellID==25916)
 end)
+
+test("judgement starts attack only against a living hostile target and the seal has its own action", function()
+    local judgement, seal = model().JudgementMacros("Richturteil", "Siegel der Rechtschaffenheit")
+    assert(judgement == "/startattack [harm,nodead]\n/cast [harm,nodead] Richturteil")
+    assert(seal == "/cast [@player] Siegel der Rechtschaffenheit")
+    assert(model().JudgementMacros("bad; unsafe", "Siegel") == nil)
+end)

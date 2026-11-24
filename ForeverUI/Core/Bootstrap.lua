@@ -4,6 +4,8 @@ function ns.Print(message)
 end
 function ns.Refresh()
     if InCombatLockdown() then ns.CombatQueue.Request("layout",ns.Refresh);return end
+    ns.Layout.Refresh()
+    ns.MinimapMenu.Refresh()
     ns.Preview.Refresh()
     if ns.Hunter then ns.Hunter.Refresh()end
     if ns.Paladin then ns.Paladin.Refresh()end
@@ -15,6 +17,7 @@ function ns.Refresh()
     ns.Party.Refresh()
     ns.ActionBars.Refresh()
     ns.Inventory.Refresh()
+    ns.UnitFrameAppearance.Refresh()
     ns.Companion.Refresh()
     if ns.CastBar then ns.CastBar.Refresh()end
     if ns.XP then ns.XP.Refresh()end
@@ -36,13 +39,18 @@ events:SetScript("OnEvent",function(_,event,name)
     elseif event=="ADDON_LOADED" and name==addon then
         ns.db=ns.Settings.Load(ForeverUICharDB)
         ForeverUICharDB=ns.db
+        ForeverUIProfilesDB=ns.Profiles.Init(ForeverUIProfilesDB)
     elseif event=="PLAYER_LOGIN" then
         ns.Theme.SetClassAccent(ns.db.classAccent)
         SLASH_FOREVERUI1="/fui"
         SlashCmdList.FOREVERUI=function(message)
             if message:match("^%s*preview%s*$") then ns.Preview.SetEnabled(not ns.Preview.IsEnabled())
+            elseif message:match("^%s*layout%s*$") then ns.Layout.SetEditing(not ns.Layout.IsEditing())
+            elseif message:match("^%s*stats%s*$") then ns.StatsView.Toggle()
             else ns.Options.Toggle() end
         end
+        ns.GoldStats.Init()
+        ns.LevelStats.Init()
         ns.Bindings.Init()
         if ns.Hunter then ns.Hunter.Init()end
         if ns.Paladin then ns.Paladin.Init()end
@@ -54,6 +62,9 @@ events:SetScript("OnEvent",function(_,event,name)
         ns.Party.Init()
         ns.ActionBars.Init()
         ns.Inventory.Init()
+        ns.Merchant.Init()
+        ns.ItemTooltips.Init()
+        ns.UnitFrameAppearance.Init()
         ns.Companion.Init()
         if ns.CastBar then ns.CastBar.Init()end
         if ns.XP then ns.XP.Init()end

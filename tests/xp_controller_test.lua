@@ -165,6 +165,37 @@ test("XP controller preserves earned XP and elapsed time across a UI reload",fun
     end)
 end)
 
+test("XP summary counts deferred live gains once and preserves the rolling window across reload",function()
+    withXPController(function(ns,live)
+        ns.XP.Init()
+        live:event("PLAYER_ENTERING_WORLD",true,false)
+        ns.QuestXP.Read=function()return 500 end
+        live:flush()
+        assert(live.summary.questXP==500)
+
+        live.clock=160
+        live.xp=41
+        live:event("PLAYER_XP_UPDATE")
+        live:event("UPDATE_EXHAUSTION")
+        live:flush()
+        local summary=ns.XP.GetSummary and ns.XP.GetSummary()
+        assert(summary and summary.recentPerHour==1200 and summary.recentWindow==60 and summary.earned==20,
+            "summary omitted or miscounted the observed XP gain")
+
+        live.clock=200
+        live:event("PLAYER_LOGOUT")
+        ns.XP.Init()
+        live.clock=220
+        live:event("PLAYER_ENTERING_WORLD",false,true)
+        summary=ns.XP.GetSummary()
+        assert(summary.recentPerHour==600 and summary.recentWindow==120 and summary.earned==20)
+
+        live:event("PLAYER_ENTERING_WORLD",true,false)
+        summary=ns.XP.GetSummary()
+        assert(summary.recentPerHour==nil and summary.recentWindow==0 and summary.earned==0)
+    end)
+end)
+
 test("pre-world XP updates and logout preserve the saved session",function()
     withXPController(function(ns,live)
         ns.db.xpSession=previousXPSession()

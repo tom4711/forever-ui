@@ -169,6 +169,106 @@ local function heading(parent, label, y)
     text:SetText(label)
 end
 
+local function auraPinOption(parent, y)
+    local L, R = ns.L, ns.Read
+    local button = UI.Button(parent, L.AURA_PINS, 220)
+    button:SetPoint("TOPLEFT", 24, y)
+    local count = UI.Text(parent, 12, T.muted)
+    count:SetPoint("LEFT", button, "RIGHT", 10, 0)
+    refreshers[#refreshers + 1] = function()
+        count:SetFormattedText("%d / 8", #ns.db.player.priorityAuras)
+    end
+
+    local function spellLabel(id, name)
+        name = name or R.Call(C_Spell and C_Spell.GetSpellName, id)
+        return type(name) == "string" and name or L.AURA_SPELL:format(id)
+    end
+    local function changed()
+        ns.Refresh()
+        ns.Options.Refresh()
+    end
+
+    button:SetScript("OnClick", function(self)
+        if not MenuUtil or not MenuUtil.CreateContextMenu then return end
+        MenuUtil.CreateContextMenu(self, function(_, menu)
+            local pinned = ns.db.player.priorityAuras
+            local shown = {}
+            for _, id in ipairs(pinned) do
+                local spell = id
+                shown[spell] = true
+                menu:CreateButton(L.AURA_UNPIN:format(spellLabel(spell)), function()
+                    for index, selected in ipairs(ns.db.player.priorityAuras) do
+                        if selected == spell then
+                            table.remove(ns.db.player.priorityAuras, index)
+                            changed()
+                            return
+                        end
+                    end
+                end)
+            end
+            if #pinned >= 8 then
+                menu:CreateTitle(L.AURA_PIN_LIMIT)
+                return
+            end
+
+            local readAura = C_UnitAuras and C_UnitAuras.GetAuraDataByIndex
+            local found = false
+            for index = 1, 40 do
+                local ok, aura = R.Try(readAura, "player", index, "HELPFUL")
+                if ok and not aura then break end
+                local id = type(aura) == "table" and R.Number(aura.spellId)
+                if id and id > 0 and not shown[id] then
+                    local spell = id
+                    shown[spell], found = true, true
+                    local name = R.Call(function() return aura.name end)
+                    menu:CreateButton(L.AURA_PIN:format(spellLabel(spell, name)), function()
+                        local selected = ns.db.player.priorityAuras
+                        if #selected < 8 then
+                            for _, other in ipairs(selected) do if other == spell then return end end
+                            selected[#selected + 1] = spell
+                            changed()
+                        end
+                    end)
+                end
+            end
+            if not found then menu:CreateTitle(L.AURA_PIN_EMPTY) end
+        end)
+    end)
+end
+
+local function judgementSealOption(parent, y)
+    local L = ns.L
+    local config = ns.db.paladin
+    local label = UI.Text(parent, 13, T.text)
+    label:SetPoint("TOPLEFT", 24, y)
+    label:SetText(L.PALADIN_JUDGEMENT_SEAL)
+    local button = UI.Button(parent, L.SET_NONE, 162)
+    button:SetPoint("TOPRIGHT", -16, y + 6)
+    button.label:SetWidth(150)
+    button.label:SetWordWrap(false)
+    button.label:SetJustifyH("CENTER")
+    local function selected(seals) return ns.PaladinModel.SelectSeal(seals, config.judgementSeal) end
+    refreshers[#refreshers + 1] = function()
+        local seal = selected(ns.Paladin.Seals())
+        button.label:SetText(seal and seal.name or L.SET_NONE)
+    end
+    button:SetScript("OnClick", function()
+        if not MenuUtil or not MenuUtil.CreateContextMenu then return end
+        local seals = ns.Paladin.Seals()
+        MenuUtil.CreateContextMenu(button, function(_, root)
+            root:CreateTitle(L.PALADIN_JUDGEMENT_SEAL)
+            local current = selected(seals)
+            for _, seal in ipairs(seals) do
+                root:CreateRadio(seal.name, function() return current == seal end, function()
+                    config.judgementSeal = seal.id
+                    ns.Refresh()
+                    ns.Options.Refresh()
+                end)
+            end
+        end)
+    end)
+end
+
 local function ammoOptions(parent, y)
     local label = UI.Text(parent, 12, T.text)
     label:SetPoint("TOPLEFT", 24, y)
@@ -223,7 +323,8 @@ local function buildClassOptions(parent)
     elseif class == "PALADIN" then
         equipmentSet(parent, "shield", L.SHIELD_SET, y)
         equipmentSet(parent, "twoHand", L.TWO_HAND_SET, y - 33)
-        y = y - 66
+        judgementSealOption(parent, y - 70)
+        y = y - 108
     end
     for _, group in ipairs(options.groups) do
         local settings = config[group[1]]
@@ -243,6 +344,88 @@ local function buildClassOptions(parent)
         y = y - 94
     end
     return -y + 10, input
+end
+
+local function buildProfileOptions(parent)
+    local L, profiles = ns.L, ns.Profiles
+    local description = UI.Text(parent, 12, T.muted)
+    description:SetPoint("TOPLEFT", 24, -6)
+    description:SetWidth(324)
+    description:SetText(L.PROFILE_SCOPE)
+
+    local label = UI.Text(parent, 13, T.text)
+    label:SetPoint("TOPLEFT", 24, -54)
+    label:SetText(L.PROFILE_NAME)
+    local input = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+    input:SetSize(182, 26)
+    input:SetPoint("TOPLEFT", 24, -76)
+    input:SetAutoFocus(false)
+    input:SetMaxBytes(64)
+    input:SetScript("OnEnterPressed", input.ClearFocus)
+    input:SetScript("OnEscapePressed", input.ClearFocus)
+
+    local picker = UI.Button(parent, L.PROFILE_PICK, 131)
+    picker:SetPoint("TOPRIGHT", -14, -75)
+    local save = UI.Button(parent, L.PROFILE_SAVE, 150)
+    save:SetPoint("TOPLEFT", 24, -124)
+    local load = UI.Button(parent, L.PROFILE_LOAD, 150)
+    load:SetPoint("TOPRIGHT", -14, -124)
+    local status = UI.Text(parent, 12, T.muted)
+    status:SetPoint("TOPLEFT", 24, -173)
+    status:SetWidth(324)
+
+    local pending = false
+    local function refresh()
+        local name = profiles.Name(input:GetText())
+        local exists = profiles.Exists(name)
+        save.label:SetText(exists and L.PROFILE_UPDATE or L.PROFILE_SAVE)
+        save:SetEnabled(name ~= nil and not pending)
+        load:SetEnabled(exists and not pending)
+        picker:SetEnabled(not pending and MenuUtil ~= nil and #profiles.List() > 0)
+    end
+    refreshers[#refreshers + 1] = refresh
+    input:SetScript("OnTextChanged", refresh)
+
+    picker:SetScript("OnClick", function()
+        MenuUtil.CreateContextMenu(picker, function(_, menu)
+            for _, name in ipairs(profiles.List()) do
+                menu:CreateRadio(name, function() return profiles.Name(input:GetText()) == name end, function()
+                    input:SetText(name)
+                    input:ClearFocus()
+                end)
+            end
+        end)
+    end)
+    save:SetScript("OnClick", function()
+        local name = profiles.Save(input:GetText(), ns.db)
+        if not name then return end
+        input:SetText(name)
+        input:ClearFocus()
+        status:SetText(L.PROFILE_SAVED:format(name))
+        refresh()
+    end)
+    load:SetScript("OnClick", function()
+        local name = profiles.Name(input:GetText())
+        if not profiles.Exists(name) then return end
+        input:ClearFocus()
+        if InCombatLockdown() then
+            pending = true
+            status:SetText(L.PROFILE_PENDING)
+            refresh()
+        end
+        ns.CombatQueue.Request("load-profile", function()
+            pending = false
+            if profiles.Apply(name, ns.db) then
+                T.SetClassAccent(ns.db.classAccent)
+                ns.MinimapButton.Refresh()
+                ns.Refresh()
+                status:SetText(L.PROFILE_LOADED:format(name))
+            end
+            ns.Options.Refresh()
+        end)
+    end)
+    parent:SetHeight(232)
+    return input
 end
 
 local function scrollPage(parent)
@@ -301,7 +484,9 @@ local function build()
     local general, generalPage = scrollPage(frame)
     local appearance, appearancePage = scrollPage(frame)
     local classes, classesPage = scrollPage(frame)
+    local profiles, profilesPage = scrollPage(frame)
     local classHeight, input = buildClassOptions(classes)
+    local profileInput = buildProfileOptions(profiles)
     local bindings = CreateFrame("Frame", nil, classes)
     bindings:SetPoint("TOPLEFT", classes, "TOPLEFT", 0, -classHeight)
     local bindingHeight = UI.BuildBindingOptions(bindings, frame, refreshers)
@@ -312,69 +497,107 @@ local function build()
         local line=UI.Rect(parent,{0.55,0.36,0.16,0.65},"BORDER")
         line:SetPoint("TOPLEFT",6,y);line:SetPoint("TOPRIGHT",-6,y);line:SetHeight(1)
     end
-    local generalTab = UI.Button(frame, L.TAB_GENERAL, 120)
-    generalTab:SetSize(120, 30)
-    generalTab:SetPoint("TOPLEFT", 24, -50)
-    local classesTab = UI.Button(frame, L.TAB_CLASSES, 120)
-    classesTab:SetSize(120, 30)
-    classesTab:SetPoint("TOP", 0, -50)
-    local appearanceTab = UI.Button(frame, L.TAB_APPEARANCE, 120)
-    appearanceTab:SetSize(120, 30)
-    appearanceTab:SetPoint("TOPRIGHT", -24, -50)
+    local tabs = {
+        {key = "general", label = L.TAB_GENERAL, page = generalPage},
+        {key = "classes", label = L.TAB_CLASSES, page = classesPage},
+        {key = "appearance", label = L.TAB_APPEARANCE, page = appearancePage},
+        {key = "profiles", label = L.TAB_PROFILES, page = profilesPage},
+    }
     local function selectTab(selected)
-        if selected~="classes" and input and input:HasFocus() then input:ClearFocus() end
-        generalPage:SetShown(selected == "general")
-        classesPage:SetShown(selected == "classes")
-        appearancePage:SetShown(selected == "appearance")
-        generalTab.label:SetTextColor(unpack(selected=="general" and T.goldLight or T.muted))
-        classesTab.label:SetTextColor(unpack(selected=="classes" and T.goldLight or T.muted))
-        appearanceTab.label:SetTextColor(unpack(selected == "appearance" and T.goldLight or T.muted))
+        if selected ~= "classes" and input and input:HasFocus() then input:ClearFocus() end
+        if selected ~= "profiles" and profileInput:HasFocus() then profileInput:ClearFocus() end
+        for _, tab in ipairs(tabs) do
+            local active = tab.key == selected
+            tab.page:SetShown(active)
+            tab.button.label:SetTextColor(unpack(active and T.goldLight or T.muted))
+        end
     end
-    generalTab:SetScript("OnClick",function()selectTab("general")end)
-    classesTab:SetScript("OnClick",function()selectTab("classes")end)
-    appearanceTab:SetScript("OnClick", function() selectTab("appearance") end)
+    for index, tab in ipairs(tabs) do
+        local button = UI.Button(frame, tab.label, 91)
+        button:SetHeight(30)
+        button:SetPoint("TOPLEFT", 24 + (index - 1) * 97, -50)
+        button:SetScript("OnClick", function() selectTab(tab.key) end)
+        tab.button = button
+    end
 
     heading(general,L.EXPERIENCE,-4)
     check(general,L.ENABLE_XP,-32,function()return ns.db.xp.enabled end,function(v)ns.db.xp.enabled=v end)
-    check(general,L.ENABLE_PLAYER_FRAME,-64,function()return ns.db.player.enabled end,function(v)ns.Player.SetReplacementEnabled(v)end)
-    scale(general,"player",L.PLAYER_FRAME_SCALE,-96)
-    check(general,L.SHOW_AT_CAP,-128,function()return ns.db.xp.showAtCap end,function(v)ns.db.xp.showAtCap=v end)
-    scale(general,"xp",L.EXPERIENCE.." · "..L.SCALE,-160)
-    local widthLabel=UI.Text(general,13,T.text);widthLabel:SetPoint("TOPLEFT",24,-193);widthLabel:SetText(L.XP_WIDTH)
-    local widthValue=UI.Text(general,13,T.goldLight);widthValue:SetPoint("TOPRIGHT",-65,-193)
+    check(general,L.SHOW_AT_CAP,-64,function()return ns.db.xp.showAtCap end,function(v)ns.db.xp.showAtCap=v end)
+    scale(general,"xp",L.EXPERIENCE.." · "..L.SCALE,-96)
+    local widthLabel=UI.Text(general,13,T.text);widthLabel:SetPoint("TOPLEFT",24,-129);widthLabel:SetText(L.XP_WIDTH)
+    local widthValue=UI.Text(general,13,T.goldLight);widthValue:SetPoint("TOPRIGHT",-65,-129)
     refreshers[#refreshers+1]=function()widthValue:SetText(ns.db.xp.width.." px")end
     for _,direction in ipairs({-1,1})do
         local step=UI.Button(general,direction==-1 and "-"or "+",25)
-        step:SetSize(25,24);step:SetPoint("TOPRIGHT",direction==-1 and -130 or -25,-188)
+        step:SetSize(25,24);step:SetPoint("TOPRIGHT",direction==-1 and -130 or -25,-124)
         step:SetScript("OnClick",function()
             ns.db.xp.width=math.max(620,math.min(1600,ns.db.xp.width+direction*40))
             ns.Refresh();ns.Options.Refresh()
         end)
     end
-    choice(general,L.QUEST_DISPLAY,"questDisplay",-232)
-    choice(general,L.RESTED_DISPLAY,"restedDisplay",-265)
-    divider(general,-302)
-    heading(general,L.LOCK,-323)
-    check(general,L.LOCK,-352,function()return ns.db.locked end,function(v)ns.db.locked=v end)
+    choice(general,L.QUEST_DISPLAY,"questDisplay",-168)
+    choice(general,L.RESTED_DISPLAY,"restedDisplay",-201)
+    divider(general,-238)
 
-    divider(general,-388)
-    heading(general,L.CAST_BAR,-408)
-    check(general,L.ENABLE_CAST_BAR,-434,function()return ns.db.castBar.enabled end,function(v)ns.db.castBar.enabled=v end)
-    scale(general,"castBar",L.CAST_BAR_SCALE,-470)
+    heading(general, L.PLAYER_FRAME, -254)
+    check(general,L.ENABLE_PLAYER_FRAME,-280,function()return ns.db.player.enabled end,function(v)ns.Player.SetReplacementEnabled(v)end)
+    check(general, L.HIDE_BLIZZARD_AURAS, -312, function() return ns.db.player.hideBlizzardAuras end,
+        function(value) ns.db.player.hideBlizzardAuras = value end)
+    scale(general,"player",L.PLAYER_FRAME_SCALE,-348)
+    auraPinOption(general, -379)
+    divider(general, -421)
 
-    divider(general, -508)
-    heading(general, L.TARGET_FRAME, -524)
-    check(general, L.ENABLE_TARGET_FRAME, -550, function() return ns.db.target.enabled end,
+    heading(general, L.LAYOUT, -437)
+    check(general, L.LOCK, -463, function() return ns.db.locked end, function(value) ns.db.locked = value end)
+    check(general, L.LAYOUT_GRID, -495, function() return ns.db.layout.grid end, function(value) ns.db.layout.grid = value end)
+    check(general, L.LAYOUT_SNAP, -527, function() return ns.db.layout.snap end, function(value) ns.db.layout.snap = value end)
+    check(general, L.LAYOUT_DOCK_CLASS, -559, function() return ns.db.layout.attachClass end,
+        function(value) ns.db.layout.attachClass = value end)
+    local editLayout = UI.Button(general, L.LAYOUT_EDIT, 220)
+    editLayout:SetPoint("TOPLEFT", 24, -592)
+    editLayout:SetScript("OnClick", function()
+        if ns.Layout.SetEditing(true) then frame:Hide() end
+    end)
+
+    divider(general, -638)
+    heading(general, L.CAST_BAR, -654)
+    check(general, L.ENABLE_CAST_BAR, -680, function() return ns.db.castBar.enabled end,
+        function(value) ns.db.castBar.enabled = value end)
+    scale(general, "castBar", L.CAST_BAR_SCALE, -716)
+
+    divider(general, -754)
+    heading(general, L.TARGET_FRAME, -770)
+    check(general, L.ENABLE_TARGET_FRAME, -796, function() return ns.db.target.enabled end,
         function(value) ns.db.target.enabled = value end)
-    scale(general, "target", L.TARGET_FRAME .. " · " .. L.SCALE, -588)
-    divider(general, -622)
-    heading(general, L.PARTY_FRAMES, -638)
-    check(general, L.SHOW_PARTY_FRAMES, -664, function() return ns.db.party.enabled end,
+    check(general, L.TARGET_OWN_AURA_TIMERS, -828, function() return ns.db.target.showOwnAuraTimers end,
+        function(value) ns.db.target.showOwnAuraTimers = value end)
+    check(general, L.SHOW_TARGET_THREAT, -860, function() return ns.db.target.showThreat end,
+        function(value) ns.db.target.showThreat = value end)
+    scale(general, "target", L.TARGET_FRAME .. " · " .. L.SCALE, -896)
+
+    divider(general, -930)
+    heading(general, L.PARTY_FRAMES, -946)
+    check(general, L.SHOW_PARTY_FRAMES, -972, function() return ns.db.party.enabled end,
         function(value) ns.db.party.enabled = value end)
-    check(general, L.REPLACE_BLIZZARD_PARTY, -696, function() return ns.db.party.replaceBlizzard end,
+    check(general, L.REPLACE_BLIZZARD_PARTY, -1004, function() return ns.db.party.replaceBlizzard end,
         function(value) ns.db.party.replaceBlizzard = value end)
-    scale(general, "party", L.PARTY_FRAMES .. " · " .. L.SCALE, -732)
-    general:SetHeight(772)
+    check(general, L.PARTY_COMPACT, -1036, function() return ns.db.party.compact end,
+        function(value) ns.db.party.compact = value end)
+    check(general, L.PARTY_SHOW_PORTRAITS, -1068, function() return ns.db.party.showPortrait end,
+        function(value) ns.db.party.showPortrait = value end)
+    check(general, L.PARTY_SHOW_MISSING_BUFF, -1100, function() return ns.db.party.showMissingBuff end,
+        function(value) ns.db.party.showMissingBuff = value end)
+    scale(general, "party", L.PARTY_FRAMES .. " · " .. L.SCALE, -1136)
+
+    divider(general, -1170)
+    heading(general, L.COMFORT, -1186)
+    check(general, L.AUTO_REPAIR, -1212, function() return ns.db.comfort.autoRepair end,
+        function(value) ns.db.comfort.autoRepair = value end)
+    check(general, L.SELL_JUNK, -1244, function() return ns.db.comfort.sellJunk end,
+        function(value) ns.db.comfort.sellJunk = value end)
+    check(general, L.SHOW_TOOLTIP_ITEM_LEVEL, -1276, function() return ns.db.comfort.tooltipItemLevel end,
+        function(value) ns.db.comfort.tooltipItemLevel = value end)
+    general:SetHeight(1318)
 
     check(appearance, L.CLASS_ACCENT, -6, function() return ns.db.classAccent end,
         function(value)
@@ -385,14 +608,26 @@ local function build()
     heading(appearance, L.ACTION_BARS, -56)
     check(appearance, L.STYLE_ACTION_BARS, -84, function() return ns.db.actionBars.enabled end,
         function(value) ns.db.actionBars.enabled = value end)
-    opacity(appearance, ns.db.actionBars, -122, ns.ActionBars.Refresh)
+    check(appearance, L.HIDE_EMPTY_ACTION_SLOTS, -116, function() return ns.db.actionBars.hideEmpty end,
+        function(value) ns.db.actionBars.hideEmpty = value end)
+    opacity(appearance, ns.db.actionBars, -154, ns.ActionBars.Refresh)
 
-    divider(appearance, -180)
-    heading(appearance, L.INVENTORY, -198)
-    check(appearance, L.STYLE_INVENTORY, -226, function() return ns.db.inventory.enabled end,
+    divider(appearance, -212)
+    heading(appearance, L.INVENTORY, -230)
+    check(appearance, L.STYLE_INVENTORY, -258, function() return ns.db.inventory.enabled end,
         function(value) ns.db.inventory.enabled = value end)
-    opacity(appearance, ns.db.inventory, -264, ns.Inventory.Refresh)
-    appearance:SetHeight(326)
+    opacity(appearance, ns.db.inventory, -296, ns.Inventory.Refresh)
+    divider(appearance, -354)
+    heading(appearance, L.UNIT_FRAME_APPEARANCE, -372)
+    check(appearance, L.STYLE_RAID_FRAMES, -401, function() return ns.db.raidFrameStyle end,
+        function(value) ns.db.raidFrameStyle = value end)
+    check(appearance, L.STYLE_ENEMY_FRAMES, -433, function() return ns.db.enemyFrameStyle end,
+        function(value) ns.db.enemyFrameStyle = value end)
+    divider(appearance, -470)
+    heading(appearance, L.MINIMAP, -486)
+    check(appearance, L.MINIMAP_COLLECT_ADDONS, -512, function() return ns.db.minimapButton.collect end,
+        function(value) ns.db.minimapButton.collect = value end)
+    appearance:SetHeight(554)
 
     local preview=UI.Button(frame,L.PREVIEW_SHOW,175);preview:SetPoint("BOTTOMLEFT",24,95)
     preview:SetScript("OnClick",function() ns.Preview.SetEnabled(not ns.Preview.IsEnabled()) end)
@@ -407,6 +642,9 @@ local function build()
         ns.db.player.position=fresh.player.position;ns.db.hunter.position=fresh.hunter.position;ns.db.xp.position=fresh.xp.position
         ns.db.paladin.position=fresh.paladin.position;ns.db.warlock.position=fresh.warlock.position
         ns.db.priest.position=fresh.priest.position
+        for _, moduleName in ipairs({"hunter", "paladin", "warlock", "priest", "mage", "shaman", "druid", "rogue", "warrior"}) do
+            ns.db[moduleName].dockPosition = fresh[moduleName].dockPosition
+        end
         for _, moduleName in ipairs({"mage", "shaman", "druid", "rogue", "warrior"}) do
             local current, defaults = ns.db[moduleName], fresh[moduleName]
             current.position = defaults.position

@@ -197,9 +197,13 @@ local function syncNativeXP(visible)
     end
 end
 
+function ns.XP.GetSummary()
+    if state then return M.Summarize(state,now()) end
+end
+
 local function render()
     if not view or not state then return end
-    local summary=M.Summarize(state,now())
+    local summary=ns.XP.GetSummary()
     summary.questXP=questXP
     summary.flight=ns.XP.FlightSnapshot()
     view.Render(summary)
@@ -243,7 +247,7 @@ function ns.XP.Init()
     view=ns.XPView.Create("ForeverUI_XP")
     -- Render live XP immediately, then use the world entry flags to resolve the saved session.
     sessionReady=false
-    state=M.New(snapshot(),now())
+    state=M.New(snapshot())
     if taxiState()==true then flight={active=true,startedAt=flightNow(),route=nil,routeLength=nil,recordable=false}end
     ns.XP.Refresh()
     events=CreateFrame("Frame")

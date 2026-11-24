@@ -31,7 +31,7 @@ function ns.Preview.Refresh()
     ns.Party.SetPreview(enabled)
     ns.Companion.Preview(enabled, class)
     hunter.frame:SetShown(enabled and class=="HUNTER" and ns.db.hunter.enabled)
-    local paladinSample={visible=enabled and class=="PALADIN" and ns.db.paladin.enabled,shield=true,activeAura="devotion",shieldState="shield"}
+    local paladinSample={visible=enabled and class=="PALADIN" and ns.db.paladin.enabled,shield=true,activeAura="devotion",shieldState="shield",judgement={spellID=ns.PaladinModel.JudgementSpellID}}
     paladin.RenderStatus(paladinSample)
     paladin.RenderActions(paladinSample,{{key="devotion",kind="aura",spellID=465},{key="retribution",kind="aura",spellID=7294},{key="might",kind="blessing",spellID=19740},{key="wisdom",kind="blessing",spellID=19742},{key="protection",kind="blessing",spellID=1022},{key="freedom",kind="blessing",spellID=1044}},nil,true,ns.db.paladin)
     local warlockSample={visible=enabled and class=="WARLOCK" and ns.db.warlock.enabled,

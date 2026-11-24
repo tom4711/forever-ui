@@ -129,14 +129,35 @@ function UI.CloseButton(parent,callback)
     button:SetScript("OnClick",callback)
     return button
 end
+local function canDrag()
+    return (not ns.db.locked or (ns.Layout and ns.Layout.IsEditing())) and IsAltKeyDown() and not InCombatLockdown()
+end
+
+local function dragAdjustment(frame, moduleName)
+    if ns.Layout and ns.Layout.IsEditing() then
+        local dx, dy = ns.Layout.Snap(frame, moduleName)
+        local scale = ns.Read.Number(ns.Read.Call(frame.GetEffectiveScale, frame)) or 1
+        return dx / scale, dy / scale
+    end
+    return 0, 0
+end
+
 function UI.MakeMovable(frame,moduleName,useGroupGrip)
     frame:SetMovable(true)
     local deferStop=false
     local function capture()
         if not frame.dragging then return false end
         frame:StopMovingOrSizing();frame.dragging=false;deferStop=false
-        local point,_,relativePoint,x,y=frame:GetPoint()
-        ns.db[moduleName].position={point=point,relativePoint=relativePoint,x=x,y=y}
+        local dx, dy = dragAdjustment(frame, moduleName)
+        local scale = ns.Read.Number(ns.Read.Call(frame.GetEffectiveScale, frame)) or 1
+        local docked = ns.Layout and ns.Layout.SaveDocked(frame, moduleName, dx * scale, dy * scale)
+        if not docked then
+            local point, _, relativePoint, x, y = frame:GetPoint()
+            if point and relativePoint and ns.Read.Number(x) and ns.Read.Number(y) then
+                ns.db[moduleName].position = {point = point, relativePoint = relativePoint, x = x + dx, y = y + dy}
+            end
+        end
+        if docked or dx ~= 0 or dy ~= 0 then UI.Place(frame, moduleName) end
         if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(false)end
         return true
     end
@@ -149,7 +170,7 @@ function UI.MakeMovable(frame,moduleName,useGroupGrip)
         if capture() and moduleName=="hunter" and ns.HunterActions then ns.HunterActions.Relayout()end
     end
     local function startMoving()
-        if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then
+        if canDrag() then
             if moduleName=="hunter" and ns.HunterFeed then ns.HunterFeed.SetDragging(true)end
             frame:StartMoving()
             frame.dragging=true
@@ -202,7 +223,8 @@ function UI.MakeGroupMovable(frame,groupName,moduleName)
         if not x or not y then return true end
         local moduleSettings=ns.db[moduleName]
         if not moduleSettings or not moduleSettings[groupName]then return true end
-        moduleSettings[groupName].position={x=x,y=y}
+        local dx, dy = dragAdjustment(frame, moduleName)
+        moduleSettings[groupName].position = {x = x + dx, y = y + dy}
         return true
     end
     local function stopMoving()
@@ -218,7 +240,7 @@ function UI.MakeGroupMovable(frame,groupName,moduleName)
         end
     end
     grip:SetScript("OnDragStart",function()
-        if not ns.db.locked and IsAltKeyDown() and not InCombatLockdown() then
+        if canDrag() then
             movingParent = parentDrag and IsShiftKeyDown()
             if movingParent then
                 parentDrag.start()
@@ -251,10 +273,21 @@ function UI.FlushDeferredMoves()
     return changed
 end
 function UI.Place(frame,moduleName)
-    local config=ns.db[moduleName]
-    frame:ClearAllPoints();frame:SetScale(config.scale)
-    local p=config.position
-    frame:SetPoint(p.point,UIParent,p.relativePoint,p.x,p.y)
+    if frame.dragging or InCombatLockdown() then return end
+    local config = ns.db[moduleName]
+    local player, x, y
+    if ns.Layout then
+        ns.Layout.Register(frame, moduleName)
+        player, x, y = ns.Layout.Dock(moduleName)
+    end
+    frame:ClearAllPoints()
+    frame:SetScale(config.scale)
+    if player then
+        frame:SetPoint("TOPLEFT", player, "TOPRIGHT", x, y)
+    else
+        local p = config.position
+        frame:SetPoint(p.point, UIParent, p.relativePoint, p.x, p.y)
+    end
 end
 
 function UI.CreateClassAnchor(name, moduleName, width, height)

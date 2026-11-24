@@ -31,7 +31,8 @@ function ns.XPView.Create(name,preview)
     local flightText=UI.Text(frame,10,T.teal);flightText:SetPoint("TOPLEFT",20,-135);flightText:Hide()
     UI.MakeMovable(frame,"xp")
     local summary
-    frame:SetScript("OnEnter",function(self)
+    local statsAvailable = not preview and ns.StatsView
+    local function showXPTooltip(self)
         if not summary then return end
         GameTooltip:SetOwner(self,"ANCHOR_TOP");GameTooltip:SetText(L.EXPERIENCE,1,0.82,0.42)
         GameTooltip:AddLine(L.REMAINING..": "..ns.Format.Number(summary.remaining),0.79,0.85,0.84,true)
@@ -39,9 +40,35 @@ function ns.XPView.Create(name,preview)
         GameTooltip:AddLine(L.RESTED..": "..ns.Format.Number(summary.rested),0.57,0.75,0.96,true)
         GameTooltip:AddLine(L.QUEST_PREVIEW_HINT,0.79,0.85,0.84,true)
         if summary.measurementReset then GameTooltip:AddLine(L.RESET_MEASUREMENT,1,0.82,0.42,true)end
+        if statsAvailable and self == icon then
+            GameTooltip:AddLine(L.STATS_XP_HINT,1,0.82,0.42,true)
+        end
         GameTooltip:Show()
-    end)
-    frame:SetScript("OnLeave",function()GameTooltip:Hide()end)
+    end
+    local function hideXPTooltip(self)
+        if GameTooltip:IsOwned(self) then GameTooltip:Hide() end
+    end
+    frame:SetScript("OnEnter", showXPTooltip)
+    frame:SetScript("OnLeave", hideXPTooltip)
+    if statsAvailable then
+        local adjusting
+        icon:RegisterForClicks("LeftButtonUp")
+        icon:RegisterForDrag("LeftButton")
+        icon:SetScript("OnMouseDown", function() adjusting = IsAltKeyDown() end)
+        icon:SetScript("OnDragStart", function()
+            adjusting = true
+            hideXPTooltip(icon)
+            frame:GetScript("OnDragStart")(frame)
+        end)
+        icon:SetScript("OnDragStop", function() frame:GetScript("OnDragStop")(frame) end)
+        icon:SetScript("OnClick", function()
+            if adjusting or IsAltKeyDown() then return end
+            hideXPTooltip(icon)
+            ns.StatsView.Toggle()
+        end)
+        icon:SetScript("OnEnter", showXPTooltip)
+        icon:SetScript("OnLeave", hideXPTooltip)
+    end
     local view={frame=frame}
     local function displayText(amount,mode,maximum)
         local value=ns.XPModel.DisplayAmount(amount,maximum,mode)

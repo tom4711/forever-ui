@@ -2,18 +2,24 @@
 ## Title: Forever UI
 ## Notes: Class controls and XP tools in an ornate gold and petrol style. Alpha build.
 ## Author: tom4711
-## Version: 0.1.40-alpha
+## Version: 0.1.55-alpha
+## SavedVariables: ForeverUIProfilesDB
 ## SavedVariablesPerCharacter: ForeverUICharDB
 
 Locales.lua
 Core/Read.lua
+Modules/Stats/Gold.lua
+Modules/Stats/Level.lua
 Core/Settings.lua
+Core/Profiles.lua
 Core/Format.lua
 Core/CombatQueue.lua
 Core/Bindings.lua
 Core/FriendlyBuffs.lua
 UI/Theme.lua
 UI/Widgets.lua
+UI/SessionStats.lua
+UI/Layout.lua
 UI/SpellPower.lua
 UI/SpellCooldown.lua
 UI/InterruptCue.lua
@@ -42,8 +48,11 @@ Modules/Target/View.lua
 Modules/Target/Controller.lua
 Modules/Party/View.lua
 Modules/Party/Controller.lua
+Modules/UnitFrameAppearance.lua
 Modules/ActionBars/Appearance.lua
 Modules/Inventory/Appearance.lua
+Modules/Merchant.lua
+Modules/ItemTooltips.lua
 Modules/Player/Controller.lua
 Modules/CastBar.lua
 Modules/XP/Model.lua
@@ -52,5 +61,6 @@ Modules/XP/Controller.lua
 UI/Preview.lua
 UI/Bindings.lua
 UI/Settings.lua
+UI/MinimapMenu.lua
 UI/MinimapButton.lua
 Core/Bootstrap.lua

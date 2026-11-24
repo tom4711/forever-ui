@@ -25,6 +25,11 @@ function ns.PaladinView.Create(name, preview)
         if entry.key == "weaponSet" then
             return UI.CreateClassAction(parent, entry, preview, T.icons.settings, L.WEAPON_SET, L.WEAPON_SET_HINT)
         end
+        if entry.key == "judgement" then
+            local button = UI.CreateClassAction(parent, entry, preview, T.icons.xp, L.PALADIN_JUDGEMENT, L.PALADIN_JUDGEMENT_HINT)
+            if not preview then button:RegisterForClicks("LeftButtonDown", "LeftButtonUp", "RightButtonDown", "RightButtonUp") end
+            return button
+        end
         local label = (entry.kind == "aura" and "AURA_" or "BLESSING_") .. entry.key
         local hint = entry.unit == "player" and L.PRIEST_MACRO_SELF_HINT or L.PALADIN_CLICK_HINT
         local button = UI.CreateClassAction(parent, entry, preview, T.icons.xp, L[label] or entry.key, hint)
@@ -70,12 +75,22 @@ function ns.PaladinView.Create(name, preview)
             local bindingID = action.key == "protection" and "PaladinProtection" or "PaladinFreedom"
             quickEntries[#quickEntries + 1] = {key = action.key, spellID = action.spellID, unit = "player", bindingID = bindingID}
         end
+        local judgement = data.judgement
+        if judgement then
+            quickEntries[#quickEntries + 1] = {key = "judgement", spellID = judgement.spellID,
+                macro = judgement.cast, bindingID = "PaladinJudgement"}
+        end
         local weaponEntries = (macro or isPreview) and {{key = "weaponSet", bindingID = "PaladinWeapons"}} or {}
         UI.RenderClassGroup(auras, config.auraGroup, auraEntries, data.visible, makeAction)
         UI.RenderClassGroup(blessings, config.blessingGroup, blessingEntries, data.visible, makeAction)
         UI.RenderClassGroup(weapons, config.weaponGroup, weaponEntries, data.visible, makeAction)
         UI.RenderClassGroup(quick, config.macroGroup, quickEntries, data.visible, makeAction)
         UI.RenderClassGroup(friendly, config.friendlyGroup, friendlyEntries, data.visible, makeFriendly)
+        local judgementButton = quick.buttons.judgement
+        if judgementButton and judgement and not preview then
+            judgementButton:SetAttribute("type2", judgement.reseal and "macro" or nil)
+            judgementButton:SetAttribute("macrotext2", judgement.reseal)
+        end
         local weaponButton = weapons.buttons.weaponSet
         if weaponButton and not preview then
             weaponButton:SetAttribute("type1", macro and "macro" or nil)

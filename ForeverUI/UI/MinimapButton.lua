@@ -10,6 +10,11 @@ local function updatePosition(button,angle)
     button:SetPoint("CENTER",Minimap,"CENTER",math.cos(radians)*radius,math.sin(radians)*radius)
 end
 
+function ns.MinimapButton.Refresh()
+    local button = ns.MinimapButton.button
+    if button then updatePosition(button) end
+end
+
 function ns.MinimapButton.Init()
     if ns.MinimapButton.button or not Minimap then return end
     local button=UI.CreateIconButton(Minimap,"ForeverUI_SettingsMinimapButton",true)
@@ -17,11 +22,24 @@ function ns.MinimapButton.Init()
     button:SetFrameStrata("MEDIUM")
     button:SetFrameLevel(Minimap:GetFrameLevel()+8)
     button.icon:SetTexture(T.icons.settings)
-    button:RegisterForClicks("LeftButtonUp")
+    button:RegisterForClicks("LeftButtonUp","RightButtonUp")
     button:RegisterForDrag("LeftButton")
     UI.Tooltip(button,ns.L.OPTIONS)
-
-    button:SetScript("OnClick",function()ns.Options.Toggle()end)
+    button:HookScript("OnEnter", function()
+        if ns.db.minimapButton.collect then
+            GameTooltip:AddLine(ns.L.MINIMAP_ADDONS_HINT, 0.78, 0.84, 0.84)
+            GameTooltip:Show()
+        end
+    end)
+    button:SetScript("OnHide", ns.MinimapMenu.Close)
+    button:SetScript("OnClick", function(_, mouseButton)
+        if mouseButton == "RightButton" then
+            ns.MinimapMenu.Toggle()
+        else
+            ns.MinimapMenu.Close()
+            ns.Options.Toggle()
+        end
+    end)
     button:SetScript("OnDragStart",function(self)
         GameTooltip:Hide()
         self:SetScript("OnUpdate",function(moving)
@@ -41,4 +59,5 @@ function ns.MinimapButton.Init()
     updatePosition(button)
     button:Show()
     ns.MinimapButton.button=button
+    ns.MinimapMenu.Init(button)
 end

@@ -36,12 +36,15 @@ local function hasTarget()
 end
 
 local function refreshIdentity()
-    view.Identity(M.Value(UnitName, "target"), M.Value(UnitLevel, "target"))
+    local className
+    if R.Call(UnitIsPlayer, "target") == true and R.Call(UnitIsUnit, "target", "player") ~= true then
+        className = M.Value(UnitClass, "target")
+    end
+    view.Identity(M.Value(UnitName, "target"), M.Value(UnitLevel, "target"), className)
 end
 
 local function refreshDestination()
-    local name
-    if R.Call(UnitExists, "targettarget") == true then name = M.Value(UnitName, "targettarget") end
+    local name = M.Value(UnitName, "targettarget")
     local isPlayer = R.Call(UnitIsUnit, "targettarget", "player") == true
     view.Destination(name, isPlayer)
 end
@@ -51,12 +54,15 @@ local function refreshHealth()
         R.Call(UnitCanAttack, "player", "target") == true)
 end
 
-local function refreshDebuffs()
-    if view.NativeDebuffs then
-        view.RefreshNativeDebuffs()
-    else
-        view.Debuffs(M.Debuffs(view.AuraLimit))
-    end
+local function refreshAuras()
+    view.Buffs(M.Auras(view.AuraLimit, "HELPFUL", true))
+    local showTimers = ns.db.target.showOwnAuraTimers ~= false
+    local debuffs, restricted = M.Auras(view.AuraLimit, "HARMFUL", showTimers)
+    view.Debuffs(debuffs, restricted, showTimers)
+end
+
+local function refreshThreat()
+    view.Threat(ns.db.target.showThreat ~= false and M.Threat() or nil)
 end
 
 local function refreshCast()
@@ -68,15 +74,19 @@ local function refreshTarget()
         refreshIdentity()
         refreshDestination()
         refreshHealth()
-        refreshDebuffs()
+        refreshAuras()
         refreshCast()
+        refreshThreat()
     else
         view.Destination(nil, false)
         view.Cast(nil)
-        view.Debuffs({})
+        view.Threat(nil)
+        view.Buffs({})
+        view.Debuffs({}, false, ns.db.target.showOwnAuraTimers ~= false)
     end
 end
 
+local previewTimers, previewThreat
 function Target.Refresh()
     if not view or not ns.db.target then return end
     if not InCombatLockdown() then
@@ -91,7 +101,12 @@ function Target.Refresh()
         if enabled and previewEnabled then
             if not previewView then previewView = ns.TargetView.Create("ForeverUI_PreviewTarget", true) end
             if not previewView.frame.dragging then ns.UI.Place(previewView.frame, "target") end
-            if not previewView.frame:IsShown() then previewView.ShowPreview() end
+            local showTimers = ns.db.target.showOwnAuraTimers ~= false
+            local showThreat = ns.db.target.showThreat ~= false
+            if not previewView.frame:IsShown() or previewTimers ~= showTimers or previewThreat ~= showThreat then
+                previewTimers, previewThreat = showTimers, showThreat
+                previewView.ShowPreview(showTimers, showThreat)
+            end
         elseif previewView then
             previewView.frame:Hide()
         end
@@ -129,6 +144,7 @@ local function onEvent(_, event, unit)
     elseif active and hasTarget() then
         if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
             refreshHealth()
+            if R.Call(UnitIsDead, "target") == true then view.Threat(nil) end
         elseif event == "UNIT_TARGET" or (event == "UNIT_NAME_UPDATE" and unit == "targettarget") then
             refreshDestination()
         elseif event == "UNIT_NAME_UPDATE" or event == "UNIT_LEVEL" or event == "UNIT_PORTRAIT_UPDATE" then
@@ -136,8 +152,15 @@ local function onEvent(_, event, unit)
         elseif event == "UNIT_FACTION" then
             refreshHealth()
             refreshCast()
+            refreshThreat()
         elseif event == "UNIT_AURA" then
-            refreshDebuffs()
+            refreshAuras()
+        elseif event == "PLAYER_REGEN_DISABLED" then
+            refreshAuras()
+            refreshThreat()
+        elseif event == "UNIT_THREAT_LIST_UPDATE" or event == "UNIT_THREAT_SITUATION_UPDATE"
+            or event == "PLAYER_ROLES_ASSIGNED" or event == "GROUP_ROSTER_UPDATE" or event == "UNIT_PET" then
+            refreshThreat()
         elseif stopEvents[event] and C_Timer and C_Timer.After then
             -- The client may still return the just-ended cast while dispatching its stop event.
             if not castRefreshQueued then
@@ -163,7 +186,16 @@ function Target.Init()
     end
     if InCombatLockdown() then return end
     view = ns.TargetView.Create("ForeverUI_Target")
-    for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_LEAVING_WORLD", "PLAYER_TARGET_CHANGED"}) do
+    local destinationElapsed = 0
+    view.frame:SetScript("OnUpdate", function(_, elapsed)
+        -- Enemy AI can change targets between UNIT_TARGET events.
+        destinationElapsed = destinationElapsed + elapsed
+        if destinationElapsed < 0.2 then return end
+        destinationElapsed = 0
+        if active and hasTarget() then refreshDestination() end
+    end)
+    for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_LEAVING_WORLD", "PLAYER_TARGET_CHANGED", "PLAYER_REGEN_DISABLED",
+        "PLAYER_ROLES_ASSIGNED", "GROUP_ROSTER_UPDATE"}) do
         events:RegisterEvent(event)
     end
     for _, event in ipairs({"UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_LEVEL", "UNIT_PORTRAIT_UPDATE", "UNIT_TARGET"}) do
@@ -171,7 +203,10 @@ function Target.Init()
     end
     events:RegisterUnitEvent("UNIT_NAME_UPDATE", "target", "targettarget")
     events:RegisterUnitEvent("UNIT_FACTION", "target", "player")
-    if not view.NativeDebuffs then events:RegisterUnitEvent("UNIT_AURA", "target") end
+    events:RegisterUnitEvent("UNIT_AURA", "target")
+    events:RegisterUnitEvent("UNIT_THREAT_LIST_UPDATE", "target")
+    events:RegisterUnitEvent("UNIT_THREAT_SITUATION_UPDATE", "player", "target")
+    events:RegisterUnitEvent("UNIT_PET", "player")
     for _, event in ipairs(castEvents) do events:RegisterUnitEvent(event, "target") end
     for event in pairs(stopEvents) do events:RegisterUnitEvent(event, "target") end
     Target.Refresh()

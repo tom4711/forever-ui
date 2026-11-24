@@ -60,4 +60,24 @@ function M.EquipmentMacro(shieldName,twoHandName)
     if not safe(shieldName) or not safe(twoHandName) then return nil end
     return "/equipset [equipped:shield] "..twoHandName.."; "..shieldName
 end
+M.JudgementSpellID = 20271
+M.SealIDs = {21084, 21082, 1311649, 20375, 20164, 20165, 20166}
+
+function M.SelectSeal(seals, preferred)
+    for _, seal in ipairs(seals) do
+        if seal.id == preferred then return seal end
+    end
+    return seals[1]
+end
+
+local function safeSpellName(name)
+    return type(name) == "string" and #name > 0 and #name <= 100 and not name:find("[%c;%[%]]")
+end
+
+function M.JudgementMacros(judgementName, sealName)
+    if not safeSpellName(judgementName) then return end
+    local judgement = "/startattack [harm,nodead]\n/cast [harm,nodead] " .. judgementName
+    local seal = safeSpellName(sealName) and "/cast [@player] " .. sealName or nil
+    return judgement, seal
+end
 return M
